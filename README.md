@@ -13,3 +13,7 @@ Required Python modules:
 4. Run discord_bot.py (Must be run on the same machine as the game server)
 
 The bot will now update its status every 10 seconds.
+
+Example of how the bot can look like:
+
+![image](https://user-images.githubusercontent.com/25136341/126863860-281ba954-481f-4d9a-92bc-2e2e5dabb595.png)
