@@ -1,6 +1,7 @@
 # BLRE-Server-Info-Discord-Bot
-Discord bot that shows the player count and current map in its status
-Only tested on Windows 10
+Discord bot that shows the player count and current map in its status.
+
+Only tested on Windows 10 and Python 3.8.
 
 Required Python modules:
 * discord https://discordpy.readthedocs.io/en/stable/intro.html#installing
@@ -10,4 +11,5 @@ Required Python modules:
 2. Set your bot token in discord_bot.py
 3. Make sure BLR server is running
 4. Run discord_bot.py (Must be run on the same machine as the game server)
-The bot will now update its status every 10 seconds
+
+The bot will now update its status every 10 seconds.
