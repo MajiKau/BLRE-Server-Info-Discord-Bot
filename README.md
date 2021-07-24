@@ -1,9 +1,10 @@
 # BLRE-Server-Info-Discord-Bot
 Discord bot that shows the player count and current map in its status
+Only tested on Windows 10
 
 Required Python modules:
-* discord
-* win32gui
+* discord https://discordpy.readthedocs.io/en/stable/intro.html#installing
+* win32gui (pip install pywin32)
 
 1. Make a discord bot and invite it to a channel https://discordpy.readthedocs.io/en/stable/discord.html
 2. Set your bot token in discord_bot.py
