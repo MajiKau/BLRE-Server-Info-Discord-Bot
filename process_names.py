@@ -4,29 +4,54 @@ import re
 
 def winEnumHandler(hwnd, ctx):
     if win32gui.IsWindowVisible(hwnd):
-        ctx.append(win32gui.GetWindowText(hwnd))
+        ctx.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 
-def getServerInfo(playerCap):
-    windowTitles = []
-    title = 'NOT ONLINE'
+def pickServer():
+    serverProcess = 0
+    allProcesses = []
+    win32gui.EnumWindows(winEnumHandler, allProcesses)
+    matchingProcesses = [
+        match for match in allProcesses if match[1].startswith('[VER')]
 
-    win32gui.EnumWindows(winEnumHandler, windowTitles)
+    i = 0
+    print('All matching processes:')
+    for process in matchingProcesses:
+        print('[' + str(i) + '] ' + str(process))
+        i += 1
 
-    # Find the BLR Server window and extract the player count and map from it
-    for windowTitle in windowTitles:
-        if(windowTitle.startswith('[VER')):
-            info = re.findall(r'\[(.*?)\]', windowTitle)
-            playerCount = info[1].strip('POP ')
-            if(int(playerCount) > int(playerCap)):
-                playerCount = '??'
-            mapFileName = info[2].strip('MAP ')
-            mapName = getMapName(mapFileName)
-            title = playerCount + '/' + playerCap + ' | ' + mapName
-            break
+    if(len(matchingProcesses) > 1):
+        serverProcessIndex = max(
+            0, min(int(input('Select process: ')), len(matchingProcesses)-1))
+        serverProcess = matchingProcesses[serverProcessIndex][0]
+
+    if(len(matchingProcesses) == 1):
+        serverProcess = matchingProcesses[0][0]
+
+    return serverProcess
+
+
+def getProcessTitle(hwnd):
+    return win32gui.GetWindowText(hwnd)
+
+
+def getServerInfo(hwnd, playerCap):
+    serverInfo = 'NOT ONLINE'
+
+    processTitle = getProcessTitle(hwnd)
+
+    # # Find the BLR Server window and extract the player count and map from it
+    if(processTitle != ""):
+        infoBlocks = re.findall(r'\[(.*?)\]', processTitle)
+        playerCount = infoBlocks[1].strip('POP ')
+        if(int(playerCount) > int(playerCap)):
+            playerCount = '??'
+        mapFileName = infoBlocks[2].strip('MAP ')
+        mapName = getMapName(mapFileName)
+        serverInfo = playerCount + '/' + playerCap + ' | ' + mapName
 
     # Return "{playerCount}/{playerCap} | {mapName}"
-    return title
+    return serverInfo
 
 
 def getMapName(mapFileName):
