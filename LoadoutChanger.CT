@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="34">
+  <Forms>
+    <CETrainer Class="TTrainerForm" Encoding="Ascii85">Rgtky!!Qtr-GnwtQ#vy,WMDuHsEmxQm8wXU8X5}m/hIwuN?[;8OU29a4!i+a4@W96.U.OI*A^t?_NA?p%0h?l/3W!QNf]$?7INd@u/p+Lu-5kDcV[{DNwvL4HW7tA[-Q{0l{[#VmV.?bnc$uNRM3@!YMfG?fb8L%0oRSsulmL_/2V-zoNif,xXj#0D0awl]h_#;5]bf40eK#$V*wuaRoRG2$5ncm?93LCKEYvJ/V;3)FAk$^J_wew32mWMW)!rwR?-?EiY./+5ps:xN+9p3b-k.,m$lcrDXrJ[wjZe3[P!)zLQYLmK-UH!+wBpeBv4xkU7bRZ(/z9%/g3w]3gnh@qx*mQ@:,NM[aiFJj#%VEy4_Wd3;Y{iz;T)A3,@2cHC{qeo0NE2jraA3+Qvlx=*og;,*z6g(HuhM$**liz$J7slPi!]3nBCi</CETrainer>
+  </Forms>
+  <CheatEntries/>
+  <UserdefinedSymbols/>
+  <LuaScript>package.path = TrainerOrigin..'lua\\?.lua'
+Json = require("lunajson")
+
+receiverAddresses = {}
+playerAddresses = {}
+
+receivers = {}
+players = {}
+
+primaryReceiverOffset = 0x798
+secondaryReceiverOffset = 0x7C4
+
+assaultRifle = 0
+submachineGun = 0
+boltActionRifle = 0
+
+playerLoadouts = {}
+
+CETrainer_CEButton1.Enabled = true
+CETrainer_CELabel1.Caption = 'Click Enable after making sure\nthe game server is running'
+CETrainer_CEButton1.Caption = 'Enable'
+
+function GetReceiver(receiverAddress)
+  for x=1, #receivers do
+    local receiver = receivers[x]
+    if(receiverAddress == receiver[1]) then
+      return receivers[x]
+    end
+  end
+  return nil
+end
+
+function GetPrimaryReceiver(playerAddress)
+  local pointer = playerAddress + primaryReceiverOffset
+  local address = readPointer(pointer)
+
+  return GetReceiver(address)
+end
+
+function GetSecondaryReceiver(playerAddress)
+  local pointer = playerAddress + secondaryReceiverOffset
+  local address = readPointer(pointer)
+
+  return GetReceiver(address)
+end
+
+function GetPlayerName(address)
+  local pointer = address + 0x9C
+  pointer = readPointer(pointer)
+  if(pointer == nil) then return nil end
+  pointer = pointer + 0x1EC
+  pointer = readPointer(pointer)
+  if(pointer == nil) then return nil end
+  local name = readString(pointer, 64, true)
+  return name
+end
+
+function ScanPlayers(totalPlayers)
+    local doScan = false
+
+    if(totalPlayers &gt; 16) then totalPlayers = 16 end
+    --print(#players)
+    --print(totalPlayers)
+    if(#players == totalPlayers) then
+        local playerValue = 0x01773220
+        for x=1, #players do
+            local value = readInteger(players[x][1])
+            if(value ~= playerValue) then
+                doScan = true
+                break
+            end
+            local name = GetPlayerName(players[x][1])
+            if(name ~= players[x][2]) then
+                doScan = true
+                break
+            end
+            local receiver = GetPrimaryReceiver(players[x][1])
+            local receiver2 = GetSecondaryReceiver(players[x][1])
+            if(receiver == nil or receiver2 == nil) then
+                doScan = true
+                break
+            end
+        end
+    end
+    if(#players ~= totalPlayers) then
+        doScan = true
+    end
+    if(doScan == false) then return end
+
+    --print("Scanning Players")
+
+    playerAddresses = AOBScan("20 32 77 01")
+
+    --print(playerAddresses.getCount())
+
+  --if(playerAddresses == 0) then
+  --  playerAddresses = AOBScan("20 32 77 01")
+  --end
+
+    players = {}
+    for x=1, playerAddresses.getCount()-1 do
+        local address = tonumber(playerAddresses[x],16)
+        local name = GetPlayerName(address)
+        --print(name)
+        if(name ~= nil) then
+            local receiver = GetPrimaryReceiver(address)
+            local receiver2 = GetSecondaryReceiver(address)
+            if(receiver ~= nil and receiver ~= 0) then
+                table.insert(players, {address, name, receiver, receiver2})
+            end
+        end
+    end
+    --print("Found " .. #players .. " Players")
+    return players
+end
+
+function FindReceiverName(address)
+  local pointer = address + 0x154
+  pointer = readPointer(pointer)
+  if(pointer ~= nil) then
+    pointer = pointer + 0x30C
+    pointer = readPointer(pointer)
+    if(pointer ~= nil) then
+      local name = readString(pointer, 64, true)
+      return name
+    end
+  end
+
+  return nil
+end
+
+function ScanReceivers()
+  if(#receivers ~= 0) then
+    return receivers
+  end
+
+  if(#receiverAddresses == 0) then
+    local offsetAddresses = AOBScan("36 00 A0 00")
+    for x=1, offsetAddresses.getCount()-1 do
+      local offsetAddress = tonumber(offsetAddresses[x],16)
+      local address = offsetAddress - 0xCC
+      table.insert(receiverAddresses, address)
+    end
+  end
+
+
+  for x=1, #receiverAddresses do
+    local address = receiverAddresses[x]
+    if(address ~= nil) then
+      local name = FindReceiverName(address)
+      if(name ~= nil) then
+        table.insert(receivers, {address, name})
+
+        if(name == "Assault Rifle") then
+            assaultRifle = address
+        end
+        if(name == "Submachine Gun") then
+            submachineGun = address
+        end
+        if(name == "Bolt-Action Rifle") then
+            boltActionRifle = address
+        end
+
+        -- print(name)
+
+      end
+    end
+  end
+
+  return receivers
+end
+
+
+
+function GetPlayerPrimary(name)
+  --ScanReceivers()
+  --ScanPlayers()
+
+  for x=1, #players do
+    local player = players[x]
+    if(player[2] == name) then
+      --print(player[2])
+      --print(player[3][2])
+      return player[3]
+    end
+  end
+end
+
+function SetPlayerPrimary(playerName, receiverName)
+  --ScanReceivers()
+  --ScanPlayers()
+  --print(playerName .. " " .. receiverName)
+  local receiver = nil
+  local player = nil
+
+  for x=1, #players do
+    if(players[x][2] == playerName) then
+      player = players[x]
+      break
+    end
+  end
+
+  if(player == nil) then return end
+
+  for x=1, #receivers do
+    if(receivers[x][2] == receiverName) then
+      receiver = receivers[x]
+      break
+    end
+  end
+
+  if(receiver == nil) then return end
+  if(readPointer(player[1]+primaryReceiverOffset) == receiver[1]) then
+    --print("Nothing to change")
+    return
+  end
+  --print("Changing Primary")
+  writeInteger(player[1]+primaryReceiverOffset, receiver[1])
+end
+
+function SetPlayerSecondary(playerName, receiverName)
+  local receiver = nil
+  local player = nil
+
+  for x=1, #players do
+    if(players[x][2] == playerName) then
+      player = players[x]
+      break
+    end
+  end
+
+  if(player == nil) then return end
+
+  for x=1, #receivers do
+    if(receivers[x][2] == receiverName) then
+      receiver = receivers[x]
+      break
+    end
+  end
+
+  if(receiver == nil) then return end
+  if(readPointer(player[1]+secondaryReceiverOffset) == receiver[1]) then
+    return
+  end
+  writeInteger(player[1]+secondaryReceiverOffset, receiver[1])
+end
+
+function SetLoadout(player, loadout)
+    for x=1, #players do
+        local playerAddress = player[1]
+        local playerName = player[2]
+        local primaryReceiverPointer = playerAddress + primaryReceiverOffset
+        local primaryReceiverAddress = readPointer(primaryReceiverPointer)
+
+        if(primaryReceiverAddress == assaultRifle) then
+            SetPlayerPrimary(playerName, loadout.Loadout1.Primary.Receiver)
+            SetPlayerSecondary(playerName, loadout.Loadout1.Secondary.Receiver)
+        end
+        if(primaryReceiverAddress == submachineGun) then
+            SetPlayerPrimary(playerName, loadout.Loadout2.Primary.Receiver)
+            SetPlayerSecondary(playerName, loadout.Loadout2.Secondary.Receiver)
+        end
+        if(primaryReceiverAddress == boltActionRifle) then
+            SetPlayerPrimary(playerName, loadout.Loadout3.Primary.Receiver)
+            SetPlayerSecondary(playerName, loadout.Loadout3.Secondary.Receiver)
+        end
+    end
+end
+
+function UpdateLoadouts()
+    for x=1, #players do
+        local player = players[x]
+        for y=1, #playerLoadouts.Loadouts do
+            local loadout = playerLoadouts.Loadouts[y]
+            if(player[2] == loadout.PlayerName) then
+                SetLoadout(player, loadout)
+                break
+            end
+        end
+    end
+end
+
+function LoadLoadouts()
+    local path = TrainerOrigin.."src\\loadouts.json"
+    local contents = ""
+    local loadouts = {}
+    local file, err = io.open( path, "r" )
+
+    if file then
+        -- read all contents of file into a string
+        local contents = file:read( "*a" )
+        --print(contents)
+        loadouts = Json.decode(contents);
+        io.close( file )
+        return loadouts
+    end
+    print('Failed to open loadouts.json\n'..err)
+    return nil
+end
+
+
+function Update30Seconds(totalPlayers)
+    --print('Update! '..totalPlayers)
+    ScanPlayers(totalPlayers)
+    playerLoadouts = LoadLoadouts()
+    --print('Players: '..#players)
+    --print('Player Loadouts: '..#playerLoadouts.Loadouts)
+end
+
+function Update5Seconds()
+    --print('HEY')
+    if(#players &gt; 0) then
+        --print('#players')
+        if(#playerLoadouts.Loadouts &gt; 0) then
+            --print('playerLoadouts')
+            UpdateLoadouts()
+        end
+    end
+end
+
+--TRAINERGENERATORSTART--
+--This is autogenerated code. Changing code in this block will
+--get erased and rewritten if you regenerate the trainer code
+
+--Uncomment the following line if this is a Cheat Table format trainer and you don't want CE to show (Tip, save as .CETRAINER alternatively)
+--hideAllCEWindows()
+
+RequiredCEVersion=7.2
+if (getCEVersion==nil) or (getCEVersion()&lt;RequiredCEVersion) then
+  messageDialog('Please install Cheat Engine '..RequiredCEVersion, mtError, mbOK)
+  closeCE()
+end
+CETrainer.SEPERATOR.Visible=false
+
+getAutoAttachList().add("FoxGame-win32-Shipping-Patched-Server.exe")
+gPlaySoundOnAction=false
+CETrainer.show()
+function AboutClick()
+  showMessage(gAboutText)
+end
+gAboutText=[[This trainer was made by Cheat Engine
+www.cheatengine.org]]
+
+function CloseClick()
+  --called by the close button onClick event, and when closing the form
+  closeCE()
+  return caFree --onClick doesn't care, but onClose would like a result
+end
+
+--TRAINERGENERATORSTOP--
+function CETrainer_CEButton1Click(sender)
+    receiverAddresses = {}
+    playerAddresses = {}
+
+    receivers = {}
+    players = {}
+
+    assaultRifle = 0
+    submachineGun = 0
+    boltActionRifle = 0
+
+    playerLoadouts = {}
+
+    ScanReceivers()
+    openLuaServer('blrevive')
+
+    CETrainer_CEButton1.Enabled = false
+    CETrainer_CELabel1.Caption = 'Attached to\n' .. (process or 'NOTHING')
+    CETrainer_CEButton1.Caption = 'Running'
+end
+
+</LuaScript>
+</CheatTable>

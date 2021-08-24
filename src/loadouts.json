@@ -1,0 +1,32 @@
+{
+    "Loadouts": [
+        {
+            "DiscordId": 243449119757041665,
+            "PlayerName": "MagiCow",
+            "Loadout1": {
+                "Primary": {
+                    "Receiver": "M4X Rifle"
+                },
+                "Secondary": {
+                    "Receiver": "Revolver"
+                }
+            },
+            "Loadout2": {
+                "Primary": {
+                    "Receiver": "AK470 Rifle"
+                },
+                "Secondary": {
+                    "Receiver": "Heavy Pistol"
+                }
+            },
+            "Loadout3": {
+                "Primary": {
+                    "Receiver": "Combat Rifle"
+                },
+                "Secondary": {
+                    "Receiver": "Katana"
+                }
+            }
+        }
+    ]
+}

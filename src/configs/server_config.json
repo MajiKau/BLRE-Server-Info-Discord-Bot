@@ -1,0 +1,15 @@
+{
+    "LaunchOptions": {
+        "Map": "",
+        "Servername": "Moo Server",
+        "Gamemode": "",
+        "Port": 7777,
+        "BotCount": 4,
+        "MaxPlayers": 16,
+        "Playlist": "DM",
+        "SCP": 0,
+        "TimeLimit": 0
+    },
+    "AutoRestartInLobby": false,
+    "AllowedCommands": ["help", "register", "list"]
+}
