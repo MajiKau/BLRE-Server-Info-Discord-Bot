@@ -1,6 +1,6 @@
 import json
 from classes.gamemodes import getGamemode, isValidGamemode
-from classes.items import Lists, Receivers
+from classes.items import Barrels, Lists, Receivers, Scopes, Stocks
 from classes.loadouts import Player, PlayerLoadouts
 from classes.playlists import getPlaylist, isValidPlaylist
 from classes.maps import getMapFileName, getMapName, isValidMap
@@ -162,34 +162,54 @@ class Server:
 
         command: CommandType = getMessageType(content)
 
-        listHelp = 'Lists items for customization. Usage: `list` or `list <list name>`'
+        listHelp = 'Lists items for customization. Usage: `list` or `list <list name>` Available lists:\n'
+        for list in Lists:
+            listHelp += '`' +  list + '`\n'
         registerHelp = """Used to set player loadouts. Example usage:
 ```register 
 {
     "DiscordId": 0,
-    "PlayerName": "MagiCow",
+    "PlayerName": "YourPlayerNameHere",
     "Loadout1": {
         "Primary": {
-            "Receiver": "M4X Rifle"
+            "Receiver": "M4X Rifle",
+            "Stock": "Overmatch Compensator Stock",
+            "Barrel": "Krane Heavy Assault Barrel",
+            "Scope": "Silverwood Heavy Scope"
         },
         "Secondary": {
-            "Receiver": "Revolver"
+            "Receiver": "Revolver",
+            "Stock": "",
+            "Barrel": "",
+            "Scope": ""
         }
     },
     "Loadout2": {
         "Primary": {
-            "Receiver": "AK470 Rifle"
+            "Receiver": "AK470 Rifle",
+            "Stock": "Silverwood Standard Stock",
+            "Barrel": "Briar CQC Barrel",
+            "Scope": "Lightsky Reflex Sight"
         },
         "Secondary": {
-            "Receiver": "Heavy Pistol"
+            "Receiver": "Heavy Pistol",
+            "Stock": "ArmCom Folding Stock",
+            "Barrel": "V2 X200 Mod",
+            "Scope": "Silverwood Combo Scope"
         }
     },
     "Loadout3": {
         "Primary": {
-            "Receiver": "Combat Rifle"
+            "Receiver": "Combat Rifle",
+            "Stock": "Taurex Stabilizing Stock",
+            "Barrel": "Briar Accuracy Barrel",
+            "Scope": "EMI Tech Scope"
         },
         "Secondary": {
-            "Receiver": "Katana"
+            "Receiver": "Shotgun",
+            "Stock": "Redsand Compensator Stock",
+            "Barrel": "Krane SG Bar-20",
+            "Scope": "EON Electric Scope"
         }
     }
 }```"""
@@ -293,7 +313,7 @@ class Server:
             return self.ResetOptions()
 
         if(command == CommandType.Register):
-            parts = content.split(' ', 1)
+            parts = content.split('\n', 1)
             if(len(parts) == 1):
                 await message.channel.send(registerHelp)
                 return
@@ -313,10 +333,7 @@ class Server:
         if(command == CommandType.List):
             parts = content.split(' ', 1)
             if(len(parts) == 1):
-                response = listHelp + ' Available lists:\n'
-                for list in Lists:
-                    response += '`' +  list + '`\n'
-                await message.channel.send(response)
+                await message.channel.send(listHelp)
                 return
             if(parts[1].lower() == 'receivers'):
                 response = ''
@@ -324,5 +341,23 @@ class Server:
                     response += '`' + receiver + '`\n'
                 await message.channel.send(response)
                 return
-            await message.channel.send('Not a valid list')
+            if(parts[1].lower() == 'stocks'):
+                response = ''
+                for stock in Stocks:
+                    response += '`' + stock + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'barrels'):
+                response = ''
+                for barrel in Barrels:
+                    response += '`' + barrel + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'scopes'):
+                response = ''
+                for scope in Scopes:
+                    response += '`' + scope + '`\n'
+                await message.channel.send(response)
+                return
+            await message.channel.send('Not a valid list. Use `list` to get available lists.')
             return
