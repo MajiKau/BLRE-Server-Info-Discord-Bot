@@ -387,6 +387,9 @@ class Server:
                 response = ''
                 for item in Magazines:
                     response += '`' + item + '`\n'
+                    if(len(response)>1500):
+                        await message.channel.send(response)
+                        response = ""
                 await message.channel.send(response)
                 return
             if(parts[1].lower() == 'grips'):
