@@ -26,11 +26,14 @@ class NoneRefersDefault:
 @dataclass
 class Weapon:		
     Receiver: str = ''
+    Muzzle: int = 0
     Stock: str = ''
     Barrel: str = ''
+    Magazine: int = 0
     Scope: str = ''
+    Grip: str = ''
     def LoadFromJson(json):
-        return Weapon(json['Receiver'],json['Stock'],json['Barrel'],json['Scope'])
+        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'])
 
 @dataclass
 class Loadout:		

@@ -5,26 +5,62 @@
             "PlayerName": "MagiCow",
             "Loadout1": {
                 "Primary": {
-                    "Receiver": "M4X Rifle"
+                    "Receiver": "Bullpup Full Auto",
+                    "Muzzle": 1,
+                    "Stock": "Silverwood z1200 BPFA",
+                    "Barrel": "Hullbreach 047BAR",
+                    "Magazine": 152,
+                    "Scope": "Aim Point Ammo Counter",
+                    "Grip": ""
                 },
                 "Secondary": {
-                    "Receiver": "Revolver"
+                    "Receiver": "Snub 260",
+                    "Muzzle": 0,
+                    "Stock": "No Stock",
+                    "Barrel": "No Barrel Mod",
+                    "Magazine": 177,
+                    "Scope": "No Optic Mod",
+                    "Grip": ""
                 }
             },
             "Loadout2": {
                 "Primary": {
-                    "Receiver": "AK470 Rifle"
+                    "Receiver": "Combat Rifle",
+                    "Muzzle": 3,
+                    "Stock": "Krane Extender Stock",
+                    "Barrel": "Silverwood Light Accuracy Barrel",
+                    "Magazine": 24,
+                    "Scope": "4X Ammo Counter Scope",
+                    "Grip": ""
                 },
                 "Secondary": {
-                    "Receiver": "Heavy Pistol"
+                    "Receiver": "Shotgun",
+                    "Muzzle": 0,
+                    "Stock": "Redsand Compensator Stock",
+                    "Barrel": "Krane SG Bar-20",
+                    "Magazine": 29,
+                    "Scope": "EMI Infrared Scope",
+                    "Grip": "Briar BrSGP1"
                 }
             },
             "Loadout3": {
                 "Primary": {
-                    "Receiver": "Combat Rifle"
+                    "Receiver": "Assault Rifle",
+                    "Muzzle": 2,
+                    "Stock": "Taurex Stabilizing Stock",
+                    "Barrel": "Briar Accuracy Barrel",
+                    "Magazine": 14,
+                    "Scope": "EMI Tech Scope",
+                    "Grip": ""
                 },
                 "Secondary": {
-                    "Receiver": "Katana"
+                    "Receiver": "Heavy Pistol",
+                    "Muzzle": 15,
+                    "Stock": "Silverwood Compensator Stock",
+                    "Barrel": "V2 Z900 Mod",
+                    "Magazine": 48,
+                    "Scope": "EMI Infrared Scope Mk. 2",
+                    "Grip": ""
                 }
             }
         }
