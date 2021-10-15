@@ -1,6 +1,6 @@
 import json
 from classes.gamemodes import getGamemode, isValidGamemode
-from classes.items import Lists, Receivers
+from classes.items import Barrels, Grips, Lists, Magazines, Muzzles, Receivers, Scopes, Stocks
 from classes.loadouts import Player, PlayerLoadouts
 from classes.playlists import getPlaylist, isValidPlaylist
 from classes.maps import getMapFileName, getMapName, isValidMap
@@ -162,34 +162,72 @@ class Server:
 
         command: CommandType = getMessageType(content)
 
-        listHelp = 'Lists items for customization. Usage: `list` or `list <list name>`'
-        registerHelp = """Used to set player loadouts. Example usage:
+        listHelp = 'Lists items for customization. Usage: `list` or `list <list name>` Available lists:\n'
+        for list in Lists:
+            listHelp += '`' +  list + '`\n'
+        registerHelp = """Used to set player loadouts. Leave DiscordId as 0. Use the `list` command to get available weapon parts. Example usage:
 ```register 
 {
     "DiscordId": 0,
-    "PlayerName": "MagiCow",
+    "PlayerName": "YourPlayerNameHere",
     "Loadout1": {
         "Primary": {
-            "Receiver": "M4X Rifle"
+            "Receiver": "Bullpup Full Auto",
+            "Muzzle": 1,
+            "Stock": "Silverwood z1200 BPFA",
+            "Barrel": "Hullbreach 047BAR",
+            "Magazine": 152,
+            "Scope": "Aim Point Ammo Counter",
+            "Grip": ""
         },
         "Secondary": {
-            "Receiver": "Revolver"
+            "Receiver": "Snub 260",
+            "Muzzle": 0,
+            "Stock": "No Stock",
+            "Barrel": "No Barrel Mod",
+            "Magazine": 177,
+            "Scope": "No Optic Mod",
+            "Grip": ""
         }
     },
     "Loadout2": {
         "Primary": {
-            "Receiver": "AK470 Rifle"
+            "Receiver": "Combat Rifle",
+            "Muzzle": 3,
+            "Stock": "Krane Extender Stock",
+            "Barrel": "Silverwood Light Accuracy Barrel",
+            "Magazine": 24,
+            "Scope": "4X Ammo Counter Scope",
+            "Grip": ""
         },
         "Secondary": {
-            "Receiver": "Heavy Pistol"
+            "Receiver": "Shotgun",
+            "Muzzle": 0,
+            "Stock": "Redsand Compensator Stock",
+            "Barrel": "Krane SG Bar-20",
+            "Magazine": 29,
+            "Scope": "EMI Infrared Scope",
+            "Grip": "Briar BrSGP1"
         }
     },
     "Loadout3": {
         "Primary": {
-            "Receiver": "Combat Rifle"
+            "Receiver": "Assault Rifle",
+            "Muzzle": 2,
+            "Stock": "Taurex Stabilizing Stock",
+            "Barrel": "Briar Accuracy Barrel",
+            "Magazine": 14,
+            "Scope": "EMI Tech Scope",
+            "Grip": ""
         },
         "Secondary": {
-            "Receiver": "Katana"
+            "Receiver": "Heavy Pistol",
+            "Muzzle": 15,
+            "Stock": "Silverwood Compensator Stock",
+            "Barrel": "V2 Z900 Mod",
+            "Magazine": 48,
+            "Scope": "EMI Infrared Scope Mk. 2",
+            "Grip": ""
         }
     }
 }```"""
@@ -293,7 +331,7 @@ class Server:
             return self.ResetOptions()
 
         if(command == CommandType.Register):
-            parts = content.split(' ', 1)
+            parts = content.split('\n', 1)
             if(len(parts) == 1):
                 await message.channel.send(registerHelp)
                 return
@@ -313,16 +351,52 @@ class Server:
         if(command == CommandType.List):
             parts = content.split(' ', 1)
             if(len(parts) == 1):
-                response = listHelp + ' Available lists:\n'
-                for list in Lists:
-                    response += '`' +  list + '`\n'
-                await message.channel.send(response)
+                await message.channel.send(listHelp)
                 return
             if(parts[1].lower() == 'receivers'):
                 response = ''
-                for receiver in Receivers:
-                    response += '`' + receiver + '`\n'
+                for item in Receivers:
+                    response += '`' + item + '`\n'
                 await message.channel.send(response)
                 return
-            await message.channel.send('Not a valid list')
+            if(parts[1].lower() == 'stocks'):
+                response = ''
+                for item in Stocks:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'barrels'):
+                response = ''
+                for item in Barrels:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'scopes'):
+                response = ''
+                for item in Scopes:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'muzzles'):
+                response = ''
+                for item in Muzzles:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'magazines'):
+                response = ''
+                for item in Magazines:
+                    response += '`' + item + '`\n'
+                    if(len(response)>1500):
+                        await message.channel.send(response)
+                        response = ""
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'grips'):
+                response = ''
+                for item in Grips:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            await message.channel.send('Not a valid list. Use `list` to get available lists.')
             return

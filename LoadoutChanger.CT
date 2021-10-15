@@ -8,20 +8,48 @@
   <LuaScript>package.path = TrainerOrigin..'lua\\?.lua'
 Json = require("lunajson")
 
-receiverAddresses = {}
-playerAddresses = {}
+--receivers = {}
+--receiverAddresses = {}
 
-receivers = {}
-players = {}
+--stocks = {}
+--stockAddresses = {}
+
+--barrels = {}
+--barrelAddresses = {}
+
+--scopes = {}
+--scopeAddresses = {}
+
+--players = {}
+--playerAddresses = {}
 
 primaryReceiverOffset = 0x798
+primaryMuzzleOffset = 0x79C --Int
+primaryStockOffset = 0x7A0
+primaryBarrelOffset = 0x7A4
+primaryMagazineOffset = 0x7A8 --Int
+primaryScopeOffset = 0x7AC
+primaryTagOffset = 0x7B0 --Int
+primaryGripOffset = 0x7B4
+primaryAmmoTypeOffset = 0x7B8
+
 secondaryReceiverOffset = 0x7C4
+secondaryMuzzleOffset = 0x7C8 --Int
+secondaryStockOffset = 0x7CC
+secondaryBarrelOffset = 0x7D0
+secondaryMagazineOffset = 0x7D4 --Int
+secondaryScopeOffset = 0x7D8
+secondaryTagOffset = 0x7DC --Int
+secondaryGripOffset = 0x7E0
+secondaryAmmoTypeOffset = 0x7E4
 
-assaultRifle = 0
-submachineGun = 0
-boltActionRifle = 0
+maxTag = 143
 
-playerLoadouts = {}
+--assaultRifle = 0
+--submachineGun = 0
+--boltActionRifle = 0
+
+--playerLoadouts = {}
 
 CETrainer_CEButton1.Enabled = true
 CETrainer_CELabel1.Caption = 'Click Enable after making sure\nthe game server is running'
@@ -91,6 +119,7 @@ function ScanPlayers(totalPlayers)
     end
     if(#players ~= totalPlayers) then
         doScan = true
+        --print(#players .. ":" .. totalPlayers)
     end
     if(doScan == false) then return end
 
@@ -104,8 +133,10 @@ function ScanPlayers(totalPlayers)
   --  playerAddresses = AOBScan("20 32 77 01")
   --end
 
+    --print(playerAddresses.getCount())
+
     players = {}
-    for x=1, playerAddresses.getCount()-1 do
+    for x=0, playerAddresses.getCount()-1 do
         local address = tonumber(playerAddresses[x],16)
         local name = GetPlayerName(address)
         --print(name)
@@ -143,7 +174,7 @@ function ScanReceivers()
 
   if(#receiverAddresses == 0) then
     local offsetAddresses = AOBScan("36 00 A0 00")
-    for x=1, offsetAddresses.getCount()-1 do
+    for x=0, offsetAddresses.getCount()-1 do
       local offsetAddress = tonumber(offsetAddresses[x],16)
       local address = offsetAddress - 0xCC
       table.insert(receiverAddresses, address)
@@ -168,7 +199,7 @@ function ScanReceivers()
             boltActionRifle = address
         end
 
-        -- print(name)
+        --print(name)
 
       end
     end
@@ -193,83 +224,168 @@ function GetPlayerPrimary(name)
   end
 end
 
-function SetPlayerPrimary(playerName, receiverName)
-  --ScanReceivers()
-  --ScanPlayers()
-  --print(playerName .. " " .. receiverName)
-  local receiver = nil
-  local player = nil
-
-  for x=1, #players do
-    if(players[x][2] == playerName) then
-      player = players[x]
-      break
+function SetPlayerPrimary(player, weapon)
+    local receiver = nil
+    for x=1, #receivers do
+        if(receivers[x][2] == weapon.Receiver) then
+            receiver = receivers[x]
+            break
+        end
     end
-  end
 
-  if(player == nil) then return end
-
-  for x=1, #receivers do
-    if(receivers[x][2] == receiverName) then
-      receiver = receivers[x]
-      break
+    if(receiver == nil) then return false end
+    local currentReceiver = readPointer(player[1]+primaryReceiverOffset)
+    if(currentReceiver == receiver[1] and currentReceiver ~= assaultRifle and
+     currentReceiver ~= submachineGun and currentReceiver ~= boltActionRifle) then
+        --print("Nothing to change")
+        return false
     end
-  end
 
-  if(receiver == nil) then return end
-  if(readPointer(player[1]+primaryReceiverOffset) == receiver[1]) then
-    --print("Nothing to change")
-    return
-  end
+    local stock = nil
+    for x=1, #stocks do
+        if(stocks[x][2] == weapon.Stock) then
+            stock = stocks[x]
+            break
+        end
+    end
+    local barrel = nil
+    for x=1, #barrels do
+        if(barrels[x][2] == weapon.Barrel) then
+            barrel = barrels[x]
+            break
+        end
+    end
+    local scope = nil
+    for x=1, #scopes do
+        if(scopes[x][2] == weapon.Scope) then
+            scope = scopes[x]
+            break
+        end
+    end
+    local grip = nil
+    for x=1, #grips do
+        if(grips[x][2] == weapon.Grip) then
+            grip = grips[x]
+            break
+        end
+    end
   --print("Changing Primary")
-  writeInteger(player[1]+primaryReceiverOffset, receiver[1])
+    writeInteger(player[1]+primaryReceiverOffset, receiver[1])
+    if(stock ~= nil) then
+        writeInteger(player[1]+primaryStockOffset, stock[1])
+    --else
+    --    writeInteger(player[1]+primaryStockOffset, 0)
+    end
+    if(barrel ~= nil) then
+        writeInteger(player[1]+primaryBarrelOffset, barrel[1])
+    --else
+    --    writeInteger(player[1]+primaryBarrelOffset, 0)
+    end
+    if(scope ~= nil) then
+        writeInteger(player[1]+primaryScopeOffset, scope[1])
+    --else
+    --    writeInteger(player[1]+primaryScopeOffset, 0)
+    end
+    if(grip ~= nil) then
+        writeInteger(player[1]+primaryGripOffset, grip[1])
+    --else
+    --    writeInteger(player[1]+primaryGripOffset, 0)
+    end
+    writeInteger(player[1]+primaryMuzzleOffset, weapon.Muzzle)
+    writeInteger(player[1]+primaryMagazineOffset, weapon.Magazine)
+    writeInteger(player[1]+primaryTagOffset, math.floor(math.random()*maxTag)+1)
+    return true
 end
 
-function SetPlayerSecondary(playerName, receiverName)
-  local receiver = nil
-  local player = nil
-
-  for x=1, #players do
-    if(players[x][2] == playerName) then
-      player = players[x]
-      break
+function SetPlayerSecondary(player, weapon)
+    local receiver = nil
+    for x=1, #receivers do
+        if(receivers[x][2] == weapon.Receiver) then
+            receiver = receivers[x]
+            break
+        end
     end
-  end
+    if(receiver == nil) then return false end
 
-  if(player == nil) then return end
-
-  for x=1, #receivers do
-    if(receivers[x][2] == receiverName) then
-      receiver = receivers[x]
-      break
+    local stock = nil
+    for x=1, #stocks do
+        if(stocks[x][2] == weapon.Stock) then
+            stock = stocks[x]
+            break
+        end
     end
-  end
-
-  if(receiver == nil) then return end
-  if(readPointer(player[1]+secondaryReceiverOffset) == receiver[1]) then
-    return
-  end
-  writeInteger(player[1]+secondaryReceiverOffset, receiver[1])
+    local barrel = nil
+    for x=1, #barrels do
+        if(barrels[x][2] == weapon.Barrel) then
+            barrel = barrels[x]
+            break
+        end
+    end
+    local scope = nil
+    for x=1, #scopes do
+        if(scopes[x][2] == weapon.Scope) then
+            scope = scopes[x]
+            break
+        end
+    end
+    local grip = nil
+    for x=1, #grips do
+        if(grips[x][2] == weapon.Grip) then
+            grip = grips[x]
+            break
+        end
+    end
+  --print("Changing Secondary")
+    writeInteger(player[1]+secondaryReceiverOffset, receiver[1])
+    if(stock ~= nil) then
+        writeInteger(player[1]+secondaryStockOffset, stock[1])
+    --else
+    --    writeInteger(player[1]+secondaryStockOffset, 0)
+    end
+    if(barrel ~= nil) then
+        writeInteger(player[1]+secondaryBarrelOffset, barrel[1])
+    --else
+    --    writeInteger(player[1]+secondaryBarrelOffset, 0)
+    end
+    if(scope ~= nil) then
+        writeInteger(player[1]+secondaryScopeOffset, scope[1])
+    --else
+    --    writeInteger(player[1]+secondaryScopeOffset, 0)
+    end
+    if(grip ~= nil) then
+        writeInteger(player[1]+secondaryGripOffset, grip[1])
+    --else
+    --    writeInteger(player[1]+secondaryGripOffset, 0)
+    end
+    writeInteger(player[1]+secondaryMuzzleOffset, weapon.Muzzle)
+    writeInteger(player[1]+secondaryMagazineOffset, weapon.Magazine)
+    writeInteger(player[1]+secondaryTagOffset, math.floor(math.random()*maxTag)+1)
+    return true
 end
 
 function SetLoadout(player, loadout)
-    for x=1, #players do
-        local playerAddress = player[1]
-        local playerName = player[2]
-        local primaryReceiverPointer = playerAddress + primaryReceiverOffset
-        local primaryReceiverAddress = readPointer(primaryReceiverPointer)
+    local playerAddress = player[1]
+    local primaryTagPointer = playerAddress + primaryTagOffset
+    local primaryTag = readPointer(primaryTagPointer)
 
-        if(primaryReceiverAddress == assaultRifle) then
-            SetPlayerPrimary(playerName, loadout.Loadout1.Primary.Receiver)
-            SetPlayerSecondary(playerName, loadout.Loadout1.Secondary.Receiver)
+    if(primaryTag ~= 0) then return end
+
+    local primaryReceiverPointer = playerAddress + primaryReceiverOffset
+    local primaryReceiver = readPointer(primaryReceiverPointer)
+
+    if(primaryReceiver == assaultRifle) then
+        if(SetPlayerPrimary(player, loadout.Loadout1.Primary)) then
+            SetPlayerSecondary(player, loadout.Loadout1.Secondary)
         end
-        if(primaryReceiverAddress == submachineGun) then
-            SetPlayerPrimary(playerName, loadout.Loadout2.Primary.Receiver)
-            SetPlayerSecondary(playerName, loadout.Loadout2.Secondary.Receiver)
+    end
+    if(primaryReceiver == submachineGun) then
+        if(SetPlayerPrimary(player, loadout.Loadout2.Primary)) then
+            SetPlayerSecondary(player, loadout.Loadout2.Secondary)
         end
-        if(primaryReceiverAddress == boltActionRifle) then
-            SetPlayerPrimary(playerName, loadout.Loadout3.Primary.Receiver)
-            SetPlayerSecondary(playerName, loadout.Loadout3.Secondary.Receiver)
+    end
+    if(primaryReceiver == boltActionRifle) then
+        if(SetPlayerPrimary(player, loadout.Loadout3.Primary)) then
+            SetPlayerSecondary(player, loadout.Loadout3.Secondary)
         end
     end
 end
@@ -277,14 +393,35 @@ end
 function UpdateLoadouts()
     for x=1, #players do
         local player = players[x]
+        --print(player[2])
         for y=1, #playerLoadouts.Loadouts do
             local loadout = playerLoadouts.Loadouts[y]
+            --print(loadout.PlayerName)
             if(player[2] == loadout.PlayerName) then
                 SetLoadout(player, loadout)
                 break
             end
         end
     end
+end
+
+function LoadItems()
+    local path = TrainerOrigin.."src\\items.json"
+    local contents = ""
+    local items = {}
+    local file, err = io.open( path, "r" )
+
+    if file then
+        -- read all contents of file into a string
+        local contents = file:read( "*a" )
+        --print(contents)
+        items = Json.decode(contents);
+        io.close( file )
+        if(items == nil) then print("No items found in items.json!") end
+        return items
+    end
+    print('Failed to open items.json\n'..err)
+    return nil
 end
 
 function LoadLoadouts()
@@ -305,8 +442,11 @@ function LoadLoadouts()
     return nil
 end
 
+scanCount = 0
 
 function Update30Seconds(totalPlayers)
+    scanCount = scanCount-30
+    CETrainer_CEButton1.Caption = scanCount
     --print('Update! '..totalPlayers)
     ScanPlayers(totalPlayers)
     playerLoadouts = LoadLoadouts()
@@ -315,6 +455,8 @@ function Update30Seconds(totalPlayers)
 end
 
 function Update5Seconds()
+    scanCount = scanCount+1
+    CETrainer_CEButton1.Caption = scanCount
     --print('HEY')
     if(#players &gt; 0) then
         --print('#players')
@@ -324,6 +466,192 @@ function Update5Seconds()
         end
     end
 end
+
+
+function FindAttachmentName(address)
+  local pointer = address + 0x154
+  pointer = readPointer(pointer)
+  if(pointer ~= nil) then
+    pointer = pointer + 0xCC
+    pointer = readPointer(pointer)
+    if(pointer ~= nil) then
+      local name = readString(pointer, 128, true)
+      return name
+    end
+  end
+
+  return nil
+end
+
+
+function ScanStocks()
+  if(#stocks ~= 0) then
+    return stocks
+  end
+
+  if(#stockAddresses == 0) then
+    local offsetAddresses = AOBScan("58 1B 01 00")
+    for x=0, offsetAddresses.getCount()-1 do
+      local offsetAddress = tonumber(offsetAddresses[x],16)
+      local address = offsetAddress - 0x2C
+      table.insert(stockAddresses, address)
+    end
+  end
+
+
+  for x=1, #stockAddresses do
+    local address = stockAddresses[x]
+    if(address ~= nil) then
+      local name = FindAttachmentName(address)
+      if(name ~= nil) then
+        table.insert(stocks, {address, name})
+        --print(name)
+      end
+    end
+  end
+end
+
+function ScanBarrels()
+  if(#barrels ~= 0) then
+    return barrels
+  end
+
+  if(#barrelAddresses == 0) then
+    local offsetAddresses = AOBScan("6F 16 01 00")
+    for x=0, offsetAddresses.getCount()-1 do
+      local offsetAddress = tonumber(offsetAddresses[x],16)
+      local address = offsetAddress - 0x2C
+      table.insert(barrelAddresses, address)
+    end
+  end
+
+
+  for x=1, #barrelAddresses do
+    local address = barrelAddresses[x]
+    if(address ~= nil) then
+      local name = FindAttachmentName(address)
+      if(name ~= nil) then
+        table.insert(barrels, {address, name})
+        --print(name)
+      end
+    end
+  end
+end
+
+function ScanScopes()
+  if(#scopes ~= 0) then
+    return scopes
+  end
+
+  if(#scopeAddresses == 0) then
+    local offsetAddresses = AOBScan("3D 1E 01 00")
+    for x=0, offsetAddresses.getCount()-1 do
+      local offsetAddress = tonumber(offsetAddresses[x],16)
+      local address = offsetAddress - 0x2C
+      table.insert(scopeAddresses, address)
+    end
+  end
+
+
+  for x=1, #scopeAddresses do
+    local address = scopeAddresses[x]
+    if(address ~= nil) then
+      local name = FindAttachmentName(address)
+      if(name ~= nil) then
+        table.insert(scopes, {address, name})
+        --print(name)
+      end
+    end
+  end
+end
+
+
+function InitialScan()
+    local everything = AOBScan('80 01 6A 01')
+    for x = 0, everything.getCount()-1 do
+        local address = tonumber(everything[x],16)
+        local name = FindAttachmentName(address)
+        if(name ~= nil and name ~= ' ' and name ~= '') then
+            if(has_value(items.Stocks, name)) then
+                table.insert(stocks, {address, name})
+            elseif(has_value(items.Barrels, name)) then
+                table.insert(barrels, {address, name})
+            elseif(has_value(items.Scopes, name)) then
+                table.insert(scopes, {address, name})
+            elseif(has_value(items.Grips, name)) then
+                table.insert(grips, {address, name})
+            --else
+                --table.insert(unknowns, {address, name})
+            end
+        else
+            name = FindReceiverName(address)
+            if(name ~= nil and name ~= ' ' and name ~= '') then
+                if(has_value(items.Receivers, name)) then
+                    table.insert(receivers, {address, name})
+
+                    if(name == "Assault Rifle") then
+                        assaultRifle = address
+                    end
+                    if(name == "Submachine Gun") then
+                        submachineGun = address
+                    end
+                    if(name == "Bolt-Action Rifle") then
+                        boltActionRifle = address
+                    end
+                else
+                    --table.insert(unknowns, {address, name})
+                end
+            else
+                --table.insert(unknowns, {address, name})
+            end
+        end
+    end
+end
+
+
+function has_value (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+function print_names(tab)
+    for x = 1, #tab do
+        print(tab[x][2])
+    end
+end
+
+
+function FindOtherName(address)
+  local pointer = address + 0x154
+  pointer = readPointer(pointer)
+  if(pointer ~= nil) then
+    pointer = pointer + 0xCC
+    pointer = readPointer(pointer)
+    if(pointer ~= nil) then
+      local name = readString(pointer, 128, true)
+      return name
+    end
+  end
+
+  return nil
+end
+
+function print_names2(tab)
+    for x = 1, #tab do
+        local name = FindOtherName(tab[x][1])
+        if(name ~= nil) then
+            print(name)
+        end
+    end
+end
+
+
+
 
 --TRAINERGENERATORSTART--
 --This is autogenerated code. Changing code in this block will
@@ -356,25 +684,63 @@ end
 
 --TRAINERGENERATORSTOP--
 function CETrainer_CEButton1Click(sender)
-    receiverAddresses = {}
-    playerAddresses = {}
+
+    --receivers = {}
+    --receiverAddresses = {}
+    --stocks = {}
+    --stockAddresses = {}
+    --barrels = {}
+    --barrelAddresses = {}
+    --scopes = {}
+    --scopeAddresses = {}
+
+    items = LoadItems()
 
     receivers = {}
-    players = {}
+    stocks = {}
+    barrels = {}
+    scopes = {}
+    grips = {}
+    unknowns = {}
 
     assaultRifle = 0
     submachineGun = 0
     boltActionRifle = 0
+    InitialScan()
+
+    players = {}
+    playerAddresses = {}
+
 
     playerLoadouts = {}
 
-    ScanReceivers()
     openLuaServer('blrevive')
+    --openLuaServer('blreviveDev')
+    --ScanReceivers()
+    --ScanBarrels()
+    --ScanStocks()
+    --ScanScopes()
 
     CETrainer_CEButton1.Enabled = false
     CETrainer_CELabel1.Caption = 'Attached to\n' .. (process or 'NOTHING')
     CETrainer_CEButton1.Caption = 'Running'
+
+
+    --print("------RECEIVERS------")
+    --print_names(receivers)
+    --print("------STOCKS------")
+    --print_names(stocks)
+    --print("------BARRELS------")
+    --print_names(barrels)
+    --print("------SCOPES------")
+    --print_names(scopes)
+    --print("------GRIPS------")
+    --print_names(grips)
+    --print("------UNKNOWNS------")
+    --print_names2(unknowns)
+
 end
+
 
 </LuaScript>
 </CheatTable>
