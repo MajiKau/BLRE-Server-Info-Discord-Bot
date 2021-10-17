@@ -1,4 +1,4 @@
-Lists = ['receivers','stocks','barrels','scopes','muzzles','magazines','grips']
+Lists = ['receivers','stocks','barrels','scopes','muzzles','magazines','grips', 'gear', 'tactical']
 
 Receivers = [
     "Airstrike",
@@ -437,4 +437,77 @@ AmmoTypes = [
     "Electro Rounds",
     "Standard Rounds",
     "Armor Piercing Rounds"
+]
+
+Gear = [
+    "0 = No Gear",
+    "1 = Frag Grenade Mk.1",
+    "2 = Combat Knife Mk.1",
+    "3 = Shock Grenade Mk.1",
+    "4 = EMP Grenade Mk.1",
+    "5 = Digi Grenade Mk.1",
+    "6 = Proximity Mine Mk.1",
+    "7 = HRV Decoy Mk.1",
+    "8 = Stun Mine Mk.1",
+    "9 = Toxic Grenade Mk.1",
+    "10 = HE Grenade Mk.1",
+    "11 = HRV Blackout Mk.1",
+    "12 = Combat Knife Mk.2",
+    "13 = Machete",
+    "14 = Breach Hammer",
+    "15 = Throwing Knives Mk.1",
+    "16 = Black Mesa Crowbar",
+    "17 = Golden Crowbar",
+    "18 = Silver Crowbar",
+    "19 = Exploding Tomahawk",
+    "20 = Incendiary Protection Gear",
+    "21 = Toxic Protection Gear",
+    "22 = Explosive Protection Gear",
+    "23 = Electro Protection Gear",
+    "24 = Melee Protection Gear",
+    "25 = Personal Holo-decoy",
+    "26 = Stun Shuriken",
+    "27 = Sonic Tomahawk",
+    "28 = Infrared Protection Gear",
+    "29 = Overgrown Infected Finger Nails",
+    "30 = Burning Man",
+    "31 = Overgrown Hulk Finger Nails",
+    "32 = Overgrown Infected Dog Finger Nails",
+    "33 = Toxic Breach Hammer",
+    "34 = Frag Mk.1 - Lightning Trail Mod",
+    "35 = Frag Mk.1 - Lightning Trail and Strike Mod",
+    "36 = Frag Mk.1 - Flame Mod",
+    "37 = Frag Mk.1 - Fire Mod",
+    "38 = Frag Mk.1 - Lightning Strike Mod",
+    "39 = Frag Mk.1 - Blue Explosion Mod",
+    "40 = Frag Mk.1 - Pink Explosion Mod",
+    "41 = Frag Mk.1 - Purple Explosion Mod",
+    "42 = Frag Mk.1 - Red Explosion Mod",
+    "43 = Frag Mk.1 - Blue and Yellow Explosion Mod",
+    "44 = Frag Mk.1 - Blue BOOM Explosion Mod",
+    "45 = Frag Mk.1 - Butterfly Mod",
+    "46 = Snowpocalypse",
+    "47 = Tactical Ice Axe",
+    "48 = Nor'Easter",
+    "49 = Prestige Frag Grenade Mk.1",
+    "50 = Prestige Combat Knife Mk.1",
+    "51 = I Heart U"
+]
+
+Tactical = [
+    "0 = No Tactical Gear",
+    "1 = Heal Injector Mk.1",
+    "2 = Repair Tool",
+    "3 = Ammunition Pod Mk.1",
+    "4 = Barricade Mk.1",
+    "5 = Revival Injector Mk.1",
+    "6 = Cloak",
+    "7 = Hardsuit HRV Ping",
+    "8 = Hardsuit Battle Mode",
+    "9 = Respawn Beacon",
+    "10 = Firewall Breach Kit",
+    "11 = HRV Cloak",
+    "12 = Cloak Mk.2",
+    "13 = Barricade Mk.2",
+    "14 = Improvised Shield"
 ]
