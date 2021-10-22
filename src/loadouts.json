@@ -21,7 +21,12 @@
                     "Magazine": 177,
                     "Scope": "No Optic Mod",
                     "Grip": ""
-                }
+                },
+                "Gear1": 3,
+                "Gear2": 4,
+                "Gear3": 5,
+                "Gear4": 6,
+                "Tactical": 1
             },
             "Loadout2": {
                 "Primary": {
@@ -41,7 +46,12 @@
                     "Magazine": 29,
                     "Scope": "EMI Infrared Scope",
                     "Grip": "Briar BrSGP1"
-                }
+                },
+                "Gear1": 7,
+                "Gear2": 8,
+                "Gear3": 9,
+                "Gear4": 10,
+                "Tactical": 2
             },
             "Loadout3": {
                 "Primary": {
@@ -61,7 +71,12 @@
                     "Magazine": 48,
                     "Scope": "EMI Infrared Scope Mk. 2",
                     "Grip": ""
-                }
+                },
+                "Gear1": 11,
+                "Gear2": 12,
+                "Gear3": 13,
+                "Gear4": 14,
+                "Tactical": 3
             }
         }
     ]

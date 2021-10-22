@@ -1,6 +1,6 @@
 import json
 from classes.gamemodes import getGamemode, isValidGamemode
-from classes.items import Barrels, Grips, Lists, Magazines, Muzzles, Receivers, Scopes, Stocks
+from classes.items import Barrels, Gear, Grips, Lists, Magazines, Muzzles, Receivers, Scopes, Stocks, Tactical
 from classes.loadouts import Player, PlayerLoadouts
 from classes.playlists import getPlaylist, isValidPlaylist
 from classes.maps import getMapFileName, getMapName, isValidMap
@@ -11,6 +11,25 @@ from utils.process_runner import restartServer, startServer, get_hwnds_for_pid
 from utils.process_names import getServerInfo
 from utils.cheatengine_communication import scan_players, update_loadouts
 from subprocess import Popen
+
+requiredPlayerKeys = [
+    'PlayerName'
+]
+
+requiredLoadouts = [
+    'Loadout1',
+    'Loadout2',
+    'Loadout3'
+]
+
+requiredLoadoutKeys = [
+    'Primary',
+    'Secondary'
+]
+
+requiredWeaponKeys = [
+    'Receiver'
+]
 
 class Server:
 
@@ -140,20 +159,38 @@ class Server:
     def SetPrimary(self, playerName, receiverName):
         self.PlayerLoadouts[playerName] = receiverName
 
-    def RegisterPlayer(self, discordId: int, playerName: str, receiverP1: str = 'Heavy Assault Rifle', receiverS1: str = 'Revolver', receiverP2: str = 'LMG-Recon', receiverS2: str = 'Machine Pistol', receiverP3: str = 'Combat Rifle', receiverS3: str = 'Heavy Pistol'):
-        self.PlayerLoadouts.RegisterPlayerTemp(discordId, playerName, receiverP1, receiverS1, receiverP2, receiverS2, receiverP3, receiverS3)
-        self.PlayerLoadouts.SaveLoadouts('loadouts.json')
+    # def RegisterPlayer(self, discordId: int, playerName: str, receiverP1: str = 'Heavy Assault Rifle', receiverS1: str = 'Revolver', receiverP2: str = 'LMG-Recon', receiverS2: str = 'Machine Pistol', receiverP3: str = 'Combat Rifle', receiverS3: str = 'Heavy Pistol'):
+    #     self.PlayerLoadouts.RegisterPlayerTemp(discordId, playerName, receiverP1, receiverS1, receiverP2, receiverS2, receiverP3, receiverS3)
+    #     self.PlayerLoadouts.SaveLoadouts('loadouts.json')
 
     def RegisterLoadout(self, discordId: int, jsonLoadout: str):
         try:
             data = json.loads(jsonLoadout)
+
+            for playerKey in requiredPlayerKeys:
+                if(playerKey not in data):
+                    return playerKey + ' not found!'
+
+            for loadout in requiredLoadouts:
+                if(loadout not in data):
+                    return loadout + ' not found!'
+                for loadoutKey in requiredLoadoutKeys:
+                    if(loadoutKey not in data[loadout]):
+                        return loadoutKey + ' not found in ' + loadout + '!'
+
+                    for weaponKey in requiredWeaponKeys:
+                        if(weaponKey not in data[loadout][loadoutKey]):
+                            return weaponKey + ' not found in ' + loadout + ' ' + loadoutKey + '!'
+
             player = Player.LoadFromJson(data) 
             result = self.PlayerLoadouts.RegisterPlayer(discordId, player)
-            if(result == 0):
+            if(result == ''):
                 self.PlayerLoadouts.SaveLoadouts('loadouts.json')
-            return result
+                return 'Loadout set successfully!'
+            else:
+                return result
         except:
-            return -1
+            return 'Unknown error! Something went wrong with setting your loadout.'
 
     async def Command(self, message: Message):
 
@@ -165,71 +202,85 @@ class Server:
         listHelp = 'Lists items for customization. Usage: `list` or `list <list name>` Available lists:\n'
         for list in Lists:
             listHelp += '`' +  list + '`\n'
-        registerHelp = """Used to set player loadouts. Leave DiscordId as 0. Use the `list` command to get available weapon parts. Example usage:
+        registerHelp = """Used to set player loadouts. Use the `list` command to get available weapon parts. Example usage:
 ```register 
 {
-    "DiscordId": 0,
-    "PlayerName": "YourPlayerNameHere",
-    "Loadout1": {
-        "Primary": {
-            "Receiver": "Bullpup Full Auto",
-            "Muzzle": 1,
-            "Stock": "Silverwood z1200 BPFA",
-            "Barrel": "Hullbreach 047BAR",
-            "Magazine": 152,
-            "Scope": "Aim Point Ammo Counter",
-            "Grip": ""
-        },
-        "Secondary": {
-            "Receiver": "Snub 260",
-            "Muzzle": 0,
-            "Stock": "No Stock",
-            "Barrel": "No Barrel Mod",
-            "Magazine": 177,
-            "Scope": "No Optic Mod",
-            "Grip": ""
-        }
-    },
-    "Loadout2": {
-        "Primary": {
-            "Receiver": "Combat Rifle",
-            "Muzzle": 3,
-            "Stock": "Krane Extender Stock",
-            "Barrel": "Silverwood Light Accuracy Barrel",
-            "Magazine": 24,
-            "Scope": "4X Ammo Counter Scope",
-            "Grip": ""
-        },
-        "Secondary": {
-            "Receiver": "Shotgun",
-            "Muzzle": 0,
-            "Stock": "Redsand Compensator Stock",
-            "Barrel": "Krane SG Bar-20",
-            "Magazine": 29,
-            "Scope": "EMI Infrared Scope",
-            "Grip": "Briar BrSGP1"
-        }
-    },
-    "Loadout3": {
-        "Primary": {
-            "Receiver": "Assault Rifle",
-            "Muzzle": 2,
-            "Stock": "Taurex Stabilizing Stock",
-            "Barrel": "Briar Accuracy Barrel",
-            "Magazine": 14,
-            "Scope": "EMI Tech Scope",
-            "Grip": ""
-        },
-        "Secondary": {
-            "Receiver": "Heavy Pistol",
-            "Muzzle": 15,
-            "Stock": "Silverwood Compensator Stock",
-            "Barrel": "V2 Z900 Mod",
-            "Magazine": 48,
-            "Scope": "EMI Infrared Scope Mk. 2",
-            "Grip": ""
-        }
-    }
+ "PlayerName": "YourPlayerNameHere",
+ "Loadout1": {
+  "Primary": {
+   "Receiver": "Bullpup Full Auto",
+   "Muzzle": 1,
+   "Stock": "Silverwood z1200 BPFA",
+   "Barrel": "Hullbreach 047BAR",
+   "Magazine": 152,
+   "Scope": "Aim Point Ammo Counter",
+   "Grip": ""
+  },
+  "Secondary": {
+   "Receiver": "Snub 260",
+   "Muzzle": 0,
+   "Stock": "No Stock",
+   "Barrel": "No Barrel Mod",
+   "Magazine": 177,
+   "Scope": "No Optic Mod",
+   "Grip": ""
+  },
+  "Gear1": 3,
+  "Gear2": 4,
+  "Gear3": 5,
+  "Gear4": 6,
+  "Tactical": 1
+ },
+ "Loadout2": {
+  "Primary": {
+   "Receiver": "Combat Rifle",
+   "Muzzle": 3,
+   "Stock": "Krane Extender Stock",
+   "Barrel": "Silverwood Light Accuracy Barrel",
+   "Magazine": 24,
+   "Scope": "4X Ammo Counter Scope",
+   "Grip": ""
+  },
+  "Secondary": {
+   "Receiver": "Shotgun",
+   "Muzzle": 0,
+   "Stock": "Redsand Compensator Stock",
+   "Barrel": "Krane SG Bar-20",
+   "Magazine": 29,
+   "Scope": "EMI Infrared Scope",
+   "Grip": "Briar BrSGP1"
+  },
+  "Gear1": 7,
+  "Gear2": 8,
+  "Gear3": 9,
+  "Gear4": 10,
+  "Tactical": 2
+ },
+ "Loadout3": {
+  "Primary": {
+   "Receiver": "Assault Rifle",
+   "Muzzle": 2,
+   "Stock": "Taurex Stabilizing Stock",
+   "Barrel": "Briar Accuracy Barrel",
+   "Magazine": 14,
+   "Scope": "EMI Tech Scope",
+   "Grip": ""
+  },
+  "Secondary": {
+   "Receiver": "Heavy Pistol",
+   "Muzzle": 15,
+   "Stock": "Silverwood Compensator Stock",
+   "Barrel": "V2 Z900 Mod",
+   "Magazine": 48,
+   "Scope": "EMI Infrared Scope Mk. 2",
+   "Grip": ""
+  },
+  "Gear1": 11,
+  "Gear2": 12,
+  "Gear3": 13,
+  "Gear4": 14,
+  "Tactical": 3
+ }
 }```"""
 
         if(command not in self.Options.AllowedCommands):
@@ -337,15 +388,7 @@ class Server:
                 return
             json = parts[1]
             result = self.RegisterLoadout(discordId, json)
-            if(result == 0):
-                await message.channel.send('Loadout set successfully!')
-                return
-            if(result == -1):
-                await message.channel.send('Invalid loadout!')
-                return
-            if(result == 1):
-                await message.channel.send('Player name is already taken!')
-                return
+            await message.channel.send(result)
             return
 
         if(command == CommandType.List):
@@ -395,6 +438,18 @@ class Server:
             if(parts[1].lower() == 'grips'):
                 response = ''
                 for item in Grips:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'gear'):
+                response = ''
+                for item in Gear:
+                    response += '`' + item + '`\n'
+                await message.channel.send(response)
+                return
+            if(parts[1].lower() == 'tactical'):
+                response = ''
+                for item in Tactical:
                     response += '`' + item + '`\n'
                 await message.channel.send(response)
                 return

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CheatTable CheatEngineTableVersion="34">
   <Forms>
-    <CETrainer Class="TTrainerForm" Encoding="Ascii85">Rgtky!!Qtr-GnwtQ#vy,WMDuHsEmxQm8wXU8X5}m/hIwuN?[;8OU29a4!i+a4@W96.U.OI*A^t?_NA?p%0h?l/3W!QNf]$?7INd@u/p+Lu-5kDcV[{DNwvL4HW7tA[-Q{0l{[#VmV.?bnc$uNRM3@!YMfG?fb8L%0oRSsulmL_/2V-zoNif,xXj#0D0awl]h_#;5]bf40eK#$V*wuaRoRG2$5ncm?93LCKEYvJ/V;3)FAk$^J_wew32mWMW)!rwR?-?EiY./+5ps:xN+9p3b-k.,m$lcrDXrJ[wjZe3[P!)zLQYLmK-UH!+wBpeBv4xkU7bRZ(/z9%/g3w]3gnh@qx*mQ@:,NM[aiFJj#%VEy4_Wd3;Y{iz;T)A3,@2cHC{qeo0NE2jraA3+Qvlx=*og;,*z6g(HuhM$**liz$J7slPi!]3nBCi</CETrainer>
+    <CETrainer Class="TTrainerForm" Encoding="Ascii85">Rgtky!!Qtr-GnwtQ#vy,WMDuH2qwhXTB)XusZnFWh{]y=SV]@3cByy;UWs=$4H$TUZj9h2X]s^j@xyycJNv;yh)x2C9wCx44ss.q,QVVpolIb+=YHmF7,8^OdxvZy3j6M-^lu0!wclF}riEsLclr{Smtv!FN[hgZhjRv8H$K1W8^3rQTqtn5WijF,b0eYHKFjGBB3=*Uj+SK6X]G7f11D5vLn/9t:_R4wuL{7DhjEcJZHBx!jKbM}OlKvug@rmmR3Te!:aDHk(%s5:HU0@mL,.k}w)[3WUhAr}Ue=:wpk}_qk}j!CHAw,o8Gv9-GscrZZ6tJc3PD2G5Gar?Mq=[F8[tdHj_A7)b@gwes5CobkqhZ_t7bo7.5-92,-NPhcR18_:;czC.$:17+B?S_0z10vvwU,y=VL6L]]jd#%6_Zt)D[s?L0T/?(?T</CETrainer>
   </Forms>
   <CheatEntries/>
   <UserdefinedSymbols/>
@@ -42,6 +42,10 @@ secondaryScopeOffset = 0x7D8
 secondaryTagOffset = 0x7DC --Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
+
+gearOffset = 0xC94
+tacticalOffset = 0xC98
+skinOffset = 0xCA0
 
 maxTag = 143
 
@@ -363,6 +367,19 @@ function SetPlayerSecondary(player, weapon)
     return true
 end
 
+function SetPlayerGear(player, loadout)
+    local gear1 = loadout.Gear1
+    local gear2 = loadout.Gear2 * 0x100
+    local gear3 = loadout.Gear3 * 0x10000
+    local gear4 = loadout.Gear4 * 0x1000000
+    local tactical = loadout.Tactical
+
+    local gearCombined = gear1+gear2+gear3+gear4
+
+    writeInteger(player[1]+gearOffset, gearCombined)
+    writeInteger(player[1]+tacticalOffset, tactical)
+end
+
 function SetLoadout(player, loadout)
     local playerAddress = player[1]
     local primaryTagPointer = playerAddress + primaryTagOffset
@@ -376,16 +393,19 @@ function SetLoadout(player, loadout)
     if(primaryReceiver == assaultRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout1.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout1.Secondary)
+            SetPlayerGear(player, loadout.Loadout1)
         end
     end
     if(primaryReceiver == submachineGun) then
         if(SetPlayerPrimary(player, loadout.Loadout2.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout2.Secondary)
+            SetPlayerGear(player, loadout.Loadout2)
         end
     end
     if(primaryReceiver == boltActionRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout3.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout3.Secondary)
+            SetPlayerGear(player, loadout.Loadout3)
         end
     end
 end

@@ -4,7 +4,6 @@ from typing import Any
 import json
 import jsonpickle
 
-
 @dataclass
 class DefaultVal:
     val: Any
@@ -33,14 +32,41 @@ class Weapon:
     Scope: str = ''
     Grip: str = ''
     def LoadFromJson(json):
+        if 'Muzzle' not in json:
+            json['Muzzle'] = 0
+        if 'Stock' not in json:
+            json['Stock'] = ''
+        if 'Barrel' not in json:
+            json['Barrel'] = ''
+        if 'Magazine' not in json:
+            json['Magazine'] = 0
+        if 'Scope' not in json:
+            json['Scope'] = ''
+        if 'Grip' not in json:
+            json['Grip'] = ''
         return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'])
 
 @dataclass
 class Loadout:		
     Primary: Weapon = Weapon()
     Secondary: Weapon = Weapon()
+    Gear1: int = 1
+    Gear2: int = 2
+    Gear3: int = 0
+    Gear4: int = 0
+    Tactical: int = 0
     def LoadFromJson(json):
-        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']))
+        if 'Gear1' not in json:
+            json['Gear1'] = 1
+        if 'Gear2' not in json:
+            json['Gear2'] = 2
+        if 'Gear3' not in json:
+            json['Gear3'] = 0
+        if 'Gear4' not in json:
+            json['Gear4'] = 0
+        if 'Tactical' not in json:
+            json['Tactical'] = 0
+        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'])
 
 @dataclass
 class Player(NoneRefersDefault):		
@@ -50,6 +76,8 @@ class Player(NoneRefersDefault):
     Loadout2: Loadout = DefaultVal(Loadout(Weapon('Submachine Gun'),Weapon('Light Pistol')))
     Loadout3: Loadout = DefaultVal(Loadout(Weapon('Bolt-Action Rifle'),Weapon('Light Pistol')))
     def LoadFromJson(json):
+        if 'DiscordId' not in json:
+            json['DiscordId'] = 0
         return Player(json['DiscordId'],json['PlayerName'],Loadout.LoadFromJson(json['Loadout1']),Loadout.LoadFromJson(json['Loadout2']),Loadout.LoadFromJson(json['Loadout3']))
 
 @dataclass
@@ -63,14 +91,14 @@ class PlayerLoadouts:
         for storedPlayer in self.Loadouts:
             if(storedPlayer.PlayerName == player.PlayerName):
                 if(storedPlayer.DiscordId != discordId):
-                    return 1
+                    return 'Player name is already taken!'
 
-        if(player.Loadout1.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout1.Secondary.Receiver not in Receivers): return -1
-        if(player.Loadout2.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout2.Secondary.Receiver not in Receivers): return -1
-        if(player.Loadout3.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout3.Secondary.Receiver not in Receivers): return -1
+        if(player.Loadout1.Primary.Receiver not in Receivers): return player.Loadout1.Primary.Receiver + ' is not a valid receiver!'
+        if(player.Loadout1.Secondary.Receiver not in Receivers): return player.Loadout1.Secondary.Receiver + ' is not a valid receiver!'
+        if(player.Loadout2.Primary.Receiver not in Receivers): return player.Loadout2.Primary.Receiver + ' is not a valid receiver!'
+        if(player.Loadout2.Secondary.Receiver not in Receivers): return player.Loadout2.Secondary.Receiver + ' is not a valid receiver!'
+        if(player.Loadout3.Primary.Receiver not in Receivers): return player.Loadout3.Primary.Receiver + ' is not a valid receiver!'
+        if(player.Loadout3.Secondary.Receiver not in Receivers): return player.Loadout3.Secondary.Receiver + ' is not a valid receiver!'
 
         for storedPlayer in self.Loadouts:
             if(storedPlayer.DiscordId == discordId):
@@ -79,7 +107,7 @@ class PlayerLoadouts:
                 
         player.DiscordId = discordId
         self.Loadouts.append(player)
-        return 0
+        return ''
 
     def RegisterPlayerTemp(self, discordId: int, playerName: str, receiverP1: str, receiverS1: str, receiverP2: str, receiverS2: str, receiverP3: str, receiverS3: str):
         for player in self.Loadouts:
