@@ -43,11 +43,15 @@ secondaryTagOffset = 0x7DC --Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
 
+camoOffset = 0xC8C
+
 gearOffset = 0xC94
 tacticalOffset = 0xC98
+isFemaleOffset = 0xC9C
 skinOffset = 0xCA0
 
 maxTag = 143
+maxCamo = 163
 
 --assaultRifle = 0
 --submachineGun = 0
@@ -380,6 +384,14 @@ function SetPlayerGear(player, loadout)
     writeInteger(player[1]+tacticalOffset, tactical)
 end
 
+function SetPlayerSex(player, isFemale)
+    writeInteger(player[1]+isFemaleOffset, isFemale)
+end
+
+function SetPlayerCamo(player, camo)
+    writeInteger(player[1]+camoOffset, camo)
+end
+
 function SetLoadout(player, loadout)
     local playerAddress = player[1]
     local primaryTagPointer = playerAddress + primaryTagOffset
@@ -395,19 +407,21 @@ function SetLoadout(player, loadout)
             SetPlayerSecondary(player, loadout.Loadout1.Secondary)
             SetPlayerGear(player, loadout.Loadout1)
         end
-    end
-    if(primaryReceiver == submachineGun) then
+    elseif(primaryReceiver == submachineGun) then
         if(SetPlayerPrimary(player, loadout.Loadout2.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout2.Secondary)
             SetPlayerGear(player, loadout.Loadout2)
         end
-    end
-    if(primaryReceiver == boltActionRifle) then
+    elseif(primaryReceiver == boltActionRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout3.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout3.Secondary)
             SetPlayerGear(player, loadout.Loadout3)
         end
     end
+
+    SetPlayerSex(player, math.floor(math.random()*2))
+    SetPlayerCamo(player, math.floor(math.random()*maxCamo)+1)
+
 end
 
 function UpdateLoadouts()
@@ -465,7 +479,7 @@ end
 scanCount = 0
 
 function Update30Seconds(totalPlayers)
-    scanCount = scanCount-30
+    scanCount = 0
     CETrainer_CEButton1.Caption = scanCount
     --print('Update! '..totalPlayers)
     ScanPlayers(totalPlayers)
