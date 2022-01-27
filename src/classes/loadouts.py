@@ -1,4 +1,4 @@
-from classes.items import Receivers
+from classes.items import Barrels, Grips, Receivers, Scopes, Stocks
 from dataclasses import dataclass, fields
 from typing import Any
 import json
@@ -55,6 +55,10 @@ class Loadout:
     Gear3: int = 0
     Gear4: int = 0
     Tactical: int = 0
+    Camo: int = 0
+    UpperBody: int = 0
+    LowerBody: int = 0
+    Helmet: int = 0
     def LoadFromJson(json):
         if 'Gear1' not in json:
             json['Gear1'] = 1
@@ -66,7 +70,15 @@ class Loadout:
             json['Gear4'] = 0
         if 'Tactical' not in json:
             json['Tactical'] = 0
-        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'])
+        if 'Camo' not in json:
+            json['Camo'] = 0
+        if 'UpperBody' not in json:
+            json['UpperBody'] = 0
+        if 'LowerBody' not in json:
+            json['LowerBody'] = 0
+        if 'Helmet' not in json:
+            json['Helmet'] = 0
+        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'])
 
 @dataclass
 class Player(NoneRefersDefault):		
@@ -86,19 +98,59 @@ class PlayerLoadouts:
     def LoadFromJson(jsonStr):
         return PlayerLoadouts(**jsonStr)
 
-    def RegisterPlayer(self, discordId: int, player: Player):
+    def GetWeaponErrors(weapon: Weapon):
+        errors = ""
+        if(type(weapon.Receiver) is not str): errors += 'Receiver should be a string!\n'
+        elif(weapon.Receiver != "" and weapon.Receiver not in Receivers): errors += weapon.Receiver + ' is not a valid Receiver!\n'
 
+        if(type(weapon.Stock) is not str): errors += 'Stock should be a string!\n'
+        elif(weapon.Stock != "" and weapon.Stock not in Stocks): errors += weapon.Stock + ' is not a valid Stock!\n'
+
+        if(type(weapon.Barrel) is not str): errors += 'Barrel should be a string!\n'
+        elif(weapon.Barrel != "" and weapon.Barrel not in Barrels): errors += weapon.Barrel + ' is not a valid Barrel!\n'
+
+        if(type(weapon.Scope) is not str): errors += 'Scope should be a string!\n'
+        elif(weapon.Scope != "" and weapon.Scope not in Scopes): errors += weapon.Scope + ' is not a valid Scope!\n'
+
+        if(type(weapon.Grip) is not str): errors += 'Grip should be a string!\n'
+        elif(weapon.Grip != "" and weapon.Grip not in Grips): errors += weapon.Grip + ' is not a valid Grip!\n'
+
+        if(type(weapon.Muzzle) is not int): errors += 'Muzzle should be an integer!\n'
+        if(type(weapon.Magazine) is not int): errors += 'Grip Magazine be an integer!\n'
+        return errors
+
+    def GetLoadoutErrors(loadout: Loadout):
+        errors = ""
+        errors += PlayerLoadouts.GetWeaponErrors(loadout.Primary)
+        errors += PlayerLoadouts.GetWeaponErrors(loadout.Secondary)
+        if(type(loadout.Gear1) is not int): errors += 'Gear1 should be an integer!\n'
+        if(type(loadout.Gear2) is not int): errors += 'Gear2 should be an integer!\n'
+        if(type(loadout.Gear3) is not int): errors += 'Gear3 should be an integer!\n'
+        if(type(loadout.Gear4) is not int): errors += 'Gear4 should be an integer!\n'
+        if(type(loadout.Tactical) is not int): errors += 'Tactical should be an integer!\n'
+        if(type(loadout.Camo) is not int): errors += 'Camo should be an integer!\n'
+        if(type(loadout.UpperBody) is not int): errors += 'UpperBody should be an integer!\n'
+        if(type(loadout.LowerBody) is not int): errors += 'LowerBody should be an integer!\n'
+        if(type(loadout.Helmet) is not int): errors += 'Helmet should be an integer!\n'
+
+        return errors
+
+    def GetPlayerErrors(player: Player):
+        errors = ""
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout1)
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout2)
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout3)
+        return errors
+
+    def RegisterPlayer(self, discordId: int, player: Player):
         for storedPlayer in self.Loadouts:
             if(storedPlayer.PlayerName == player.PlayerName):
                 if(storedPlayer.DiscordId != discordId):
                     return 'Player name is already taken!'
 
-        if(player.Loadout1.Primary.Receiver not in Receivers): return player.Loadout1.Primary.Receiver + ' is not a valid receiver!'
-        if(player.Loadout1.Secondary.Receiver not in Receivers): return player.Loadout1.Secondary.Receiver + ' is not a valid receiver!'
-        if(player.Loadout2.Primary.Receiver not in Receivers): return player.Loadout2.Primary.Receiver + ' is not a valid receiver!'
-        if(player.Loadout2.Secondary.Receiver not in Receivers): return player.Loadout2.Secondary.Receiver + ' is not a valid receiver!'
-        if(player.Loadout3.Primary.Receiver not in Receivers): return player.Loadout3.Primary.Receiver + ' is not a valid receiver!'
-        if(player.Loadout3.Secondary.Receiver not in Receivers): return player.Loadout3.Secondary.Receiver + ' is not a valid receiver!'
+        errors = ""
+        errors +=PlayerLoadouts.GetPlayerErrors(player)
+        if(errors != ""): return errors
 
         for storedPlayer in self.Loadouts:
             if(storedPlayer.DiscordId == discordId):
