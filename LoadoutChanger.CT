@@ -43,6 +43,7 @@ secondaryTagOffset = 0x7DC --Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
 
+armorOffset = 0xC8C -- Camo, Upper, Lower, Helmet
 camoOffset = 0xC8C
 
 gearOffset = 0xC94
@@ -50,7 +51,11 @@ tacticalOffset = 0xC98
 isFemaleOffset = 0xC9C
 skinOffset = 0xCA0
 
+maxGear = 51
 maxTag = 143
+maxHelmet = 88
+maxUpperBody = 10
+maxLowerBody = 11
 maxCamo = 163
 
 --assaultRifle = 0
@@ -372,6 +377,11 @@ function SetPlayerSecondary(player, weapon)
 end
 
 function SetPlayerGear(player, loadout)
+    if(type(loadout.Gear1) ~= "number" or loadout.Gear1>maxGear) then loadout.Gear1 = 46 end
+    if(type(loadout.Gear2) ~= "number" or loadout.Gear2>maxGear) then loadout.Gear2 = 46 end
+    if(type(loadout.Gear3) ~= "number" or loadout.Gear3>maxGear) then loadout.Gear3 = 46 end
+    if(type(loadout.Gear4) ~= "number" or loadout.Gear4>maxGear) then loadout.Gear4 = 46 end
+
     local gear1 = loadout.Gear1
     local gear2 = loadout.Gear2 * 0x100
     local gear3 = loadout.Gear3 * 0x10000
@@ -384,12 +394,24 @@ function SetPlayerGear(player, loadout)
     writeInteger(player[1]+tacticalOffset, tactical)
 end
 
-function SetPlayerSex(player, isFemale)
-    writeInteger(player[1]+isFemaleOffset, isFemale)
+function SetPlayerSex(player, loadout)
+    writeInteger(player[1]+isFemaleOffset, loadout.IsFemale)
 end
 
-function SetPlayerCamo(player, camo)
-    writeInteger(player[1]+camoOffset, camo)
+function SetPlayerArmor(player, loadout)
+    if(type(loadout.Camo) ~= "number" or loadout.Camo>maxCamo) then loadout.Camo = 0 end
+    if(type(loadout.UpperBody) ~= "number" or loadout.UpperBody>maxUpperBody) then loadout.UpperBody = 0 end
+    if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody>maxLowerBody) then loadout.LowerBody = 0 end
+    if(type(loadout.Helmet) ~= "number" or loadout.Helmet>maxHelmet) then loadout.Helmet = 0 end
+
+    local armor1 = loadout.Camo
+    local armor2 = loadout.UpperBody * 0x100
+    local armor3 = loadout.LowerBody * 0x10000
+    local armor4 = loadout.Helmet * 0x1000000
+
+    local armorCombined = armor1+armor2+armor3+armor4
+
+    writeInteger(player[1]+armorOffset, armorCombined)
 end
 
 function SetLoadout(player, loadout)
@@ -406,22 +428,24 @@ function SetLoadout(player, loadout)
         if(SetPlayerPrimary(player, loadout.Loadout1.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout1.Secondary)
             SetPlayerGear(player, loadout.Loadout1)
+            SetPlayerSex(player, loadout.Loadout1)
+            SetPlayerArmor(player, loadout.Loadout1)
         end
     elseif(primaryReceiver == submachineGun) then
         if(SetPlayerPrimary(player, loadout.Loadout2.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout2.Secondary)
             SetPlayerGear(player, loadout.Loadout2)
+            SetPlayerSex(player, loadout.Loadout2)
+            SetPlayerArmor(player, loadout.Loadout2)
         end
     elseif(primaryReceiver == boltActionRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout3.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout3.Secondary)
             SetPlayerGear(player, loadout.Loadout3)
+            SetPlayerSex(player, loadout.Loadout3)
+            SetPlayerArmor(player, loadout.Loadout3)
         end
     end
-
-    SetPlayerSex(player, math.floor(math.random()*2))
-    SetPlayerCamo(player, math.floor(math.random()*maxCamo)+1)
-
 end
 
 function UpdateLoadouts()
