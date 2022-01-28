@@ -225,11 +225,16 @@ class Server:
    "Scope": "No Optic Mod",
    "Grip": ""
   },
-  "Gear1": 3,
-  "Gear2": 4,
+  "Gear1": 15,
+  "Gear2": 25,
   "Gear3": 5,
   "Gear4": 6,
-  "Tactical": 1
+  "Tactical": 1,
+  "Camo": 78,
+  "UpperBody": 6,
+  "LowerBody": 4,
+  "Helmet": 17,
+  "IsFemale": true
  },
  "Loadout2": {
   "Primary": {
@@ -254,7 +259,12 @@ class Server:
   "Gear2": 8,
   "Gear3": 9,
   "Gear4": 10,
-  "Tactical": 2
+  "Tactical": 6,
+  "Camo": 13,
+  "UpperBody": 5,
+  "LowerBody": 7,
+  "Helmet": 15,
+  "IsFemale": true
  },
  "Loadout3": {
   "Primary": {
@@ -279,7 +289,12 @@ class Server:
   "Gear2": 12,
   "Gear3": 13,
   "Gear4": 14,
-  "Tactical": 3
+  "Tactical": 4,
+  "Camo": 92,
+  "UpperBody": 2,
+  "LowerBody": 2,
+  "Helmet": 50,
+  "IsFemale": false
  }
 }```"""
 
