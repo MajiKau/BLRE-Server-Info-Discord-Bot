@@ -28,7 +28,7 @@ def startServer(options: LaunchOptions):
     args = gameServerFile + url
     print(args)
     process = Popen(args)
-    time.sleep(10)  # Adjust this to make sure the server window is running
+    time.sleep(15)  # Adjust this to make sure the server window is running
 
     return process
 
