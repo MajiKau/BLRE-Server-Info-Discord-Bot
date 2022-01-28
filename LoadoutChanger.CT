@@ -395,7 +395,10 @@ function SetPlayerGear(player, loadout)
 end
 
 function SetPlayerSex(player, loadout)
-    writeInteger(player[1]+isFemaleOffset, loadout.IsFemale)
+    if(type(loadout.IsFemale) ~= "boolean") then loadout.IsFemale = false end
+    
+    local isFemale = loadout.IsFemale and 1 or 0
+    writeInteger(player[1]+isFemaleOffset, isFemale)
 end
 
 function SetPlayerArmor(player, loadout)

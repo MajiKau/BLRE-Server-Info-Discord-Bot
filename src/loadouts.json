@@ -26,7 +26,12 @@
                 "Gear2": 4,
                 "Gear3": 5,
                 "Gear4": 6,
-                "Tactical": 1
+                "Tactical": 1,
+                "Camo": 133,
+                "UpperBody": 6,
+                "LowerBody": 5,
+                "Helmet": 87,
+                "IsFemale": true
             },
             "Loadout2": {
                 "Primary": {
@@ -51,7 +56,12 @@
                 "Gear2": 8,
                 "Gear3": 9,
                 "Gear4": 10,
-                "Tactical": 2
+                "Tactical": 2,
+                "Camo": 13,
+                "UpperBody": 6,
+                "LowerBody": 7,
+                "Helmet": 15,
+                "IsFemale": true
             },
             "Loadout3": {
                 "Primary": {
@@ -76,7 +86,12 @@
                 "Gear2": 12,
                 "Gear3": 13,
                 "Gear4": 14,
-                "Tactical": 3
+                "Tactical": 3,
+                "Camo": 92,
+                "UpperBody": 2,
+                "LowerBody": 2,
+                "Helmet": 88,
+                "IsFemale": false
             }
         }
     ]
