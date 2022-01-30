@@ -64,6 +64,10 @@ maxCamo = 163
 
 --playerLoadouts = {}
 
+populationBaseAddress = '"FoxGame-win32-Shipping-Patched-Server.exe"+01522DE4'
+populationAddressOffset1 =0x0
+populationAddressOffset2 =0x8
+
 CETrainer_CEButton1.Enabled = true
 CETrainer_CELabel1.Caption = 'Click Enable after making sure\nthe game server is running'
 CETrainer_CEButton1.Caption = 'Enable'
@@ -489,17 +493,18 @@ end
 
 function LoadLoadouts()
     local path = TrainerOrigin.."src\\loadouts.json"
-    local contents = ""
     local loadouts = {}
     local file, err = io.open( path, "r" )
-
     if file then
         -- read all contents of file into a string
         local contents = file:read( "*a" )
-        --print(contents)
-        loadouts = Json.decode(contents);
         io.close( file )
-        return loadouts
+        if(playerLoadoutsRaw ~= contents) then
+          playerLoadoutsRaw = contents
+          loadouts = Json.decode(contents);
+          return loadouts
+        end
+        return nil
     end
     print('Failed to open loadouts.json\n'..err)
     return nil
@@ -510,11 +515,11 @@ scanCount = 0
 function Update30Seconds(totalPlayers)
     scanCount = 0
     CETrainer_CEButton1.Caption = scanCount
-    --print('Update! '..totalPlayers)
     ScanPlayers(totalPlayers)
-    playerLoadouts = LoadLoadouts()
-    --print('Players: '..#players)
-    --print('Player Loadouts: '..#playerLoadouts.Loadouts)
+    local loadouts = LoadLoadouts()
+    if(loadouts ~= nil) then
+      playerLoadouts = loadouts
+    end
 end
 
 function Update5Seconds()
@@ -714,6 +719,47 @@ function print_names2(tab)
 end
 
 
+timerCounter = 0
+local function timer_tick(timer)
+  timerCounter = timerCounter + 1
+
+  -- Every 15 seconds
+  if(math.fmod(timerCounter,15) == 0) then
+  end
+
+  -- Every 10 seconds
+  if(math.fmod(timerCounter,10) == 0) then
+    local loadouts = LoadLoadouts()
+    if(loadouts ~= nil) then
+      playerLoadouts = loadouts
+    end
+  end
+  
+  -- Every 5 seconds
+  if(math.fmod(timerCounter,5) == 0) then
+    local pointer = populationBaseAddress
+    pointer = readPointer(pointer) + populationAddressOffset1
+    pointer = readPointer(pointer) + populationAddressOffset2
+    local totalPlayers = readInteger(pointer)
+    ScanPlayers(totalPlayers)
+  end
+  
+
+  if(#players &gt; 0) then
+      --print('#players')
+      if(#playerLoadouts.Loadouts &gt; 0) then
+          --print('playerLoadouts')
+          UpdateLoadouts()
+      end
+  end
+
+
+  -- code setting done state.
+  if DoneState == true then
+    timer.destroy()
+  end
+end
+
 
 
 --TRAINERGENERATORSTART--
@@ -776,9 +822,10 @@ function CETrainer_CEButton1Click(sender)
 
 
     playerLoadouts = {}
+    playerLoadoutsRaw = ""
 
-    openLuaServer('blrevive')
-    --openLuaServer('blreviveDev')
+    -- openLuaServer('blrevive')
+    -- openLuaServer('blreviveDev')
     --ScanReceivers()
     --ScanBarrels()
     --ScanStocks()
@@ -802,6 +849,9 @@ function CETrainer_CEButton1Click(sender)
     --print("------UNKNOWNS------")
     --print_names2(unknowns)
 
+    local someTimer = createTimer()
+    someTimer.Interval = 1000
+    someTimer.OnTimer = timer_tick
 end
 
 
