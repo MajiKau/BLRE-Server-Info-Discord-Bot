@@ -1,3 +1,4 @@
+from datetime import datetime
 from discord import Client, Message, ChannelType, Game, Status
 from discord.ext import tasks
 
@@ -35,7 +36,7 @@ class MyClient(Client):
         serverInfo = self.Server.GetServerInfo()
         # Update the bot status if it has changed
         if(self.currentServerInfo != serverInfo):
-            print(serverInfo)
+            print(f'{datetime.now()}    {serverInfo}')
             self.currentServerInfo = serverInfo
             gameInfo = Game(self.currentServerInfo)
 

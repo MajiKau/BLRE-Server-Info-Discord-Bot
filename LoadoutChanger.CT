@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <CheatTable CheatEngineTableVersion="34">
   <Forms>
-    <CETrainer Class="TTrainerForm" Encoding="Ascii85">Rgtky!!Qtr-GnwtQ#vy,WMDuHsEmxQm8wXU8X5}m/hIwuN?[;8OU29a4!i+a4@W96.U.OI*A^t?_NA?p%0h?l/3W!QNf]$?7INd@u/p+Lu-5kDcV[{DNwvL4HW7tA[-Q{0l{[#VmV.?bnc$uNRM3@!YMfG?fb8L%0oRSsulmL_/2V-zoNif,xXj#0D0awl]h_#;5]bf40eK#$V*wuaRoRG2$5ncm?93LCKEYvJ/V;3)FAk$^J_wew32mWMW)!rwR?-?EiY./+5ps:xN+9p3b-k.,m$lcrDXrJ[wjZe3[P!)zLQYLmK-UH!+wBpeBv4xkU7bRZ(/z9%/g3w]3gnh@qx*mQ@:,NM[aiFJj#%VEy4_Wd3;Y{iz;T)A3,@2cHC{qeo0NE2jraA3+Qvlx=*og;,*z6g(HuhM$**liz$J7slPi!]3nBCi</CETrainer>
+    <CETrainer Class="TTrainerForm" Encoding="Ascii85">Rgtky!!Qtr-GnwtQ#vy,WMDuH2qwhXTB)XusZnFWh{]y=SV]@3cByy;UWs=$4H$TUZj9h2X]s^j@xyycJNv;yh)x2C9wCx44ss.q,QVVpolIb+=YHmF7,8^OdxvZy3j6M-^lu0!wclF}riEsLclr{Smtv!FN[hgZhjRv8H$K1W8^3rQTqtn5WijF,b0eYHKFjGBB3=*Uj+SK6X]G7f11D5vLn/9t:_R4wuL{7DhjEcJZHBx!jKbM}OlKvug@rmmR3Te!:aDHk(%s5:HU0@mL,.k}w)[3WUhAr}Ue=:wpk}_qk}j!CHAw,o8Gv9-GscrZZ6tJc3PD2G5Gar?Mq=[F8[tdHj_A7)b@gwes5CobkqhZ_t7bo7.5-92,-NPhcR18_:;czC.$:17+B?S_0z10vvwU,y=VL6L]]jd#%6_Zt)D[s?L0T/?(?T</CETrainer>
   </Forms>
   <CheatEntries/>
   <UserdefinedSymbols/>
@@ -43,7 +43,20 @@ secondaryTagOffset = 0x7DC --Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
 
+armorOffset = 0xC8C -- Camo, Upper, Lower, Helmet
+camoOffset = 0xC8C
+
+gearOffset = 0xC94
+tacticalOffset = 0xC98
+isFemaleOffset = 0xC9C
+skinOffset = 0xCA0
+
+maxGear = 51
 maxTag = 143
+maxHelmet = 88
+maxUpperBody = 10
+maxLowerBody = 11
+maxCamo = 163
 
 --assaultRifle = 0
 --submachineGun = 0
@@ -363,6 +376,47 @@ function SetPlayerSecondary(player, weapon)
     return true
 end
 
+function SetPlayerGear(player, loadout)
+    if(type(loadout.Gear1) ~= "number" or loadout.Gear1>maxGear) then loadout.Gear1 = 46 end
+    if(type(loadout.Gear2) ~= "number" or loadout.Gear2>maxGear) then loadout.Gear2 = 46 end
+    if(type(loadout.Gear3) ~= "number" or loadout.Gear3>maxGear) then loadout.Gear3 = 46 end
+    if(type(loadout.Gear4) ~= "number" or loadout.Gear4>maxGear) then loadout.Gear4 = 46 end
+
+    local gear1 = loadout.Gear1
+    local gear2 = loadout.Gear2 * 0x100
+    local gear3 = loadout.Gear3 * 0x10000
+    local gear4 = loadout.Gear4 * 0x1000000
+    local tactical = loadout.Tactical
+
+    local gearCombined = gear1+gear2+gear3+gear4
+
+    writeInteger(player[1]+gearOffset, gearCombined)
+    writeInteger(player[1]+tacticalOffset, tactical)
+end
+
+function SetPlayerSex(player, loadout)
+    if(type(loadout.IsFemale) ~= "boolean") then loadout.IsFemale = false end
+    
+    local isFemale = loadout.IsFemale and 1 or 0
+    writeInteger(player[1]+isFemaleOffset, isFemale)
+end
+
+function SetPlayerArmor(player, loadout)
+    if(type(loadout.Camo) ~= "number" or loadout.Camo>maxCamo) then loadout.Camo = 0 end
+    if(type(loadout.UpperBody) ~= "number" or loadout.UpperBody>maxUpperBody) then loadout.UpperBody = 0 end
+    if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody>maxLowerBody) then loadout.LowerBody = 0 end
+    if(type(loadout.Helmet) ~= "number" or loadout.Helmet>maxHelmet) then loadout.Helmet = 0 end
+
+    local armor1 = loadout.Camo
+    local armor2 = loadout.UpperBody * 0x100
+    local armor3 = loadout.LowerBody * 0x10000
+    local armor4 = loadout.Helmet * 0x1000000
+
+    local armorCombined = armor1+armor2+armor3+armor4
+
+    writeInteger(player[1]+armorOffset, armorCombined)
+end
+
 function SetLoadout(player, loadout)
     local playerAddress = player[1]
     local primaryTagPointer = playerAddress + primaryTagOffset
@@ -376,16 +430,23 @@ function SetLoadout(player, loadout)
     if(primaryReceiver == assaultRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout1.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout1.Secondary)
+            SetPlayerGear(player, loadout.Loadout1)
+            SetPlayerSex(player, loadout.Loadout1)
+            SetPlayerArmor(player, loadout.Loadout1)
         end
-    end
-    if(primaryReceiver == submachineGun) then
+    elseif(primaryReceiver == submachineGun) then
         if(SetPlayerPrimary(player, loadout.Loadout2.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout2.Secondary)
+            SetPlayerGear(player, loadout.Loadout2)
+            SetPlayerSex(player, loadout.Loadout2)
+            SetPlayerArmor(player, loadout.Loadout2)
         end
-    end
-    if(primaryReceiver == boltActionRifle) then
+    elseif(primaryReceiver == boltActionRifle) then
         if(SetPlayerPrimary(player, loadout.Loadout3.Primary)) then
             SetPlayerSecondary(player, loadout.Loadout3.Secondary)
+            SetPlayerGear(player, loadout.Loadout3)
+            SetPlayerSex(player, loadout.Loadout3)
+            SetPlayerArmor(player, loadout.Loadout3)
         end
     end
 end
@@ -445,7 +506,7 @@ end
 scanCount = 0
 
 function Update30Seconds(totalPlayers)
-    scanCount = scanCount-30
+    scanCount = 0
     CETrainer_CEButton1.Caption = scanCount
     --print('Update! '..totalPlayers)
     ScanPlayers(totalPlayers)

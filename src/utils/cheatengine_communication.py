@@ -2,6 +2,7 @@ import struct
 
 def scan_players(totalPlayers):
     f = open(r'\\.\pipe\blrevive','wb')
+    # f = open(r'\\.\pipe\blreviveDev','wb')
 
     lua = "Update30Seconds({})".format(totalPlayers)
     luaBytes = bytes(lua, 'utf-8')
@@ -16,6 +17,7 @@ def scan_players(totalPlayers):
 
 def update_loadouts():
     f = open(r'\\.\pipe\blrevive','wb')
+    # f = open(r'\\.\pipe\blreviveDev','wb')
 
     lua = "Update5Seconds()"
     luaBytes = bytes(lua, 'utf-8')

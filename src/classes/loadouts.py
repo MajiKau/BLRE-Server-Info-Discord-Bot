@@ -1,9 +1,8 @@
-from classes.items import Receivers
+from classes.items import Barrels, Grips, Receivers, Scopes, Stocks
 from dataclasses import dataclass, fields
 from typing import Any
 import json
 import jsonpickle
-
 
 @dataclass
 class DefaultVal:
@@ -33,14 +32,56 @@ class Weapon:
     Scope: str = ''
     Grip: str = ''
     def LoadFromJson(json):
+        if 'Muzzle' not in json:
+            json['Muzzle'] = 0
+        if 'Stock' not in json:
+            json['Stock'] = ''
+        if 'Barrel' not in json:
+            json['Barrel'] = ''
+        if 'Magazine' not in json:
+            json['Magazine'] = 0
+        if 'Scope' not in json:
+            json['Scope'] = ''
+        if 'Grip' not in json:
+            json['Grip'] = ''
         return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'])
 
 @dataclass
 class Loadout:		
     Primary: Weapon = Weapon()
     Secondary: Weapon = Weapon()
+    Gear1: int = 1
+    Gear2: int = 2
+    Gear3: int = 0
+    Gear4: int = 0
+    Tactical: int = 0
+    Camo: int = 0
+    UpperBody: int = 0
+    LowerBody: int = 0
+    Helmet: int = 0
+    IsFemale: bool = 0
     def LoadFromJson(json):
-        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']))
+        if 'Gear1' not in json:
+            json['Gear1'] = 1
+        if 'Gear2' not in json:
+            json['Gear2'] = 2
+        if 'Gear3' not in json:
+            json['Gear3'] = 0
+        if 'Gear4' not in json:
+            json['Gear4'] = 0
+        if 'Tactical' not in json:
+            json['Tactical'] = 0
+        if 'Camo' not in json:
+            json['Camo'] = 0
+        if 'UpperBody' not in json:
+            json['UpperBody'] = 0
+        if 'LowerBody' not in json:
+            json['LowerBody'] = 0
+        if 'Helmet' not in json:
+            json['Helmet'] = 0
+        if 'IsFemale' not in json:
+            json['IsFemale'] = False
+        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'], json['IsFemale'])
 
 @dataclass
 class Player(NoneRefersDefault):		
@@ -50,6 +91,8 @@ class Player(NoneRefersDefault):
     Loadout2: Loadout = DefaultVal(Loadout(Weapon('Submachine Gun'),Weapon('Light Pistol')))
     Loadout3: Loadout = DefaultVal(Loadout(Weapon('Bolt-Action Rifle'),Weapon('Light Pistol')))
     def LoadFromJson(json):
+        if 'DiscordId' not in json:
+            json['DiscordId'] = 0
         return Player(json['DiscordId'],json['PlayerName'],Loadout.LoadFromJson(json['Loadout1']),Loadout.LoadFromJson(json['Loadout2']),Loadout.LoadFromJson(json['Loadout3']))
 
 @dataclass
@@ -58,19 +101,60 @@ class PlayerLoadouts:
     def LoadFromJson(jsonStr):
         return PlayerLoadouts(**jsonStr)
 
-    def RegisterPlayer(self, discordId: int, player: Player):
+    def GetWeaponErrors(weapon: Weapon):
+        errors = ""
+        if(type(weapon.Receiver) is not str): errors += 'Receiver should be a string!\n'
+        elif(weapon.Receiver != "" and weapon.Receiver not in Receivers): errors += weapon.Receiver + ' is not a valid Receiver!\n'
 
+        if(type(weapon.Stock) is not str): errors += 'Stock should be a string!\n'
+        elif(weapon.Stock != "" and weapon.Stock not in Stocks): errors += weapon.Stock + ' is not a valid Stock!\n'
+
+        if(type(weapon.Barrel) is not str): errors += 'Barrel should be a string!\n'
+        elif(weapon.Barrel != "" and weapon.Barrel not in Barrels): errors += weapon.Barrel + ' is not a valid Barrel!\n'
+
+        if(type(weapon.Scope) is not str): errors += 'Scope should be a string!\n'
+        elif(weapon.Scope != "" and weapon.Scope not in Scopes): errors += weapon.Scope + ' is not a valid Scope!\n'
+
+        if(type(weapon.Grip) is not str): errors += 'Grip should be a string!\n'
+        elif(weapon.Grip != "" and weapon.Grip not in Grips): errors += weapon.Grip + ' is not a valid Grip!\n'
+
+        if(type(weapon.Muzzle) is not int): errors += 'Muzzle should be an integer!\n'
+        if(type(weapon.Magazine) is not int): errors += 'Grip Magazine be an integer!\n'
+        return errors
+
+    def GetLoadoutErrors(loadout: Loadout):
+        errors = ""
+        errors += PlayerLoadouts.GetWeaponErrors(loadout.Primary)
+        errors += PlayerLoadouts.GetWeaponErrors(loadout.Secondary)
+        if(type(loadout.Gear1) is not int): errors += 'Gear1 should be an integer!\n'
+        if(type(loadout.Gear2) is not int): errors += 'Gear2 should be an integer!\n'
+        if(type(loadout.Gear3) is not int): errors += 'Gear3 should be an integer!\n'
+        if(type(loadout.Gear4) is not int): errors += 'Gear4 should be an integer!\n'
+        if(type(loadout.Tactical) is not int): errors += 'Tactical should be an integer!\n'
+        if(type(loadout.Camo) is not int): errors += 'Camo should be an integer!\n'
+        if(type(loadout.UpperBody) is not int): errors += 'UpperBody should be an integer!\n'
+        if(type(loadout.LowerBody) is not int): errors += 'LowerBody should be an integer!\n'
+        if(type(loadout.Helmet) is not int): errors += 'Helmet should be an integer!\n'
+        if(type(loadout.IsFemale) is not bool): errors += 'IsFemale should be a boolean!\n'
+
+        return errors
+
+    def GetPlayerErrors(player: Player):
+        errors = ""
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout1)
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout2)
+        errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout3)
+        return errors
+
+    def RegisterPlayer(self, discordId: int, player: Player):
         for storedPlayer in self.Loadouts:
             if(storedPlayer.PlayerName == player.PlayerName):
                 if(storedPlayer.DiscordId != discordId):
-                    return 1
+                    return 'Player name is already taken!'
 
-        if(player.Loadout1.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout1.Secondary.Receiver not in Receivers): return -1
-        if(player.Loadout2.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout2.Secondary.Receiver not in Receivers): return -1
-        if(player.Loadout3.Primary.Receiver not in Receivers): return -1
-        if(player.Loadout3.Secondary.Receiver not in Receivers): return -1
+        errors = ""
+        errors +=PlayerLoadouts.GetPlayerErrors(player)
+        if(errors != ""): return errors
 
         for storedPlayer in self.Loadouts:
             if(storedPlayer.DiscordId == discordId):
@@ -79,7 +163,7 @@ class PlayerLoadouts:
                 
         player.DiscordId = discordId
         self.Loadouts.append(player)
-        return 0
+        return ''
 
     def RegisterPlayerTemp(self, discordId: int, playerName: str, receiverP1: str, receiverS1: str, receiverP2: str, receiverS2: str, receiverP3: str, receiverS3: str):
         for player in self.Loadouts:
