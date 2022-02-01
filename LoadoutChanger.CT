@@ -307,6 +307,8 @@ function SetPlayerPrimary(player, weapon)
     writeInteger(player[1]+primaryMuzzleOffset, weapon.Muzzle)
     writeInteger(player[1]+primaryMagazineOffset, weapon.Magazine)
     writeInteger(player[1]+primaryTagOffset, math.floor(math.random()*maxTag)+1)
+    writeInteger(player[1]+primaryAmmoTypeOffset, 0)
+    writeInteger(player[1]+secondaryAmmoTypeOffset, 0)
     return true
 end
 
