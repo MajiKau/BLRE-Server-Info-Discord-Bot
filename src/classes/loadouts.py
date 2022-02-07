@@ -4,6 +4,25 @@ from typing import Any
 import json
 import jsonpickle
 
+requiredPlayerKeys = [
+    'PlayerName'
+]
+
+requiredLoadouts = [
+    'Loadout1',
+    'Loadout2',
+    'Loadout3'
+]
+
+requiredLoadoutKeys = [
+    'Primary',
+    'Secondary'
+]
+
+requiredWeaponKeys = [
+    'Receiver'
+]
+
 @dataclass
 class DefaultVal:
     val: Any
@@ -31,6 +50,7 @@ class Weapon:
     Magazine: int = 0
     Scope: str = ''
     Grip: str = ''
+    Tag: int = 1
     def LoadFromJson(json):
         if 'Muzzle' not in json:
             json['Muzzle'] = 0
@@ -44,7 +64,9 @@ class Weapon:
             json['Scope'] = ''
         if 'Grip' not in json:
             json['Grip'] = ''
-        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'])
+        if 'Tag' not in json:
+            json['Tag'] = 1
+        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'],json['Tag'])
 
 @dataclass
 class Loadout:		
@@ -87,13 +109,16 @@ class Loadout:
 class Player(NoneRefersDefault):		
     DiscordId: int = 0
     PlayerName: str = ''
+    IP: str = ''
     Loadout1: Loadout = DefaultVal(Loadout(Weapon('Assault Rifle'),Weapon('Light Pistol')))
     Loadout2: Loadout = DefaultVal(Loadout(Weapon('Submachine Gun'),Weapon('Light Pistol')))
     Loadout3: Loadout = DefaultVal(Loadout(Weapon('Bolt-Action Rifle'),Weapon('Light Pistol')))
     def LoadFromJson(json):
         if 'DiscordId' not in json:
             json['DiscordId'] = 0
-        return Player(json['DiscordId'],json['PlayerName'],Loadout.LoadFromJson(json['Loadout1']),Loadout.LoadFromJson(json['Loadout2']),Loadout.LoadFromJson(json['Loadout3']))
+        if 'IP' not in json:
+            json['IP'] = ''
+        return Player(json['DiscordId'],json['PlayerName'],json['IP'],Loadout.LoadFromJson(json['Loadout1']),Loadout.LoadFromJson(json['Loadout2']),Loadout.LoadFromJson(json['Loadout3']))
 
 @dataclass
 class PlayerLoadouts:		
@@ -119,7 +144,8 @@ class PlayerLoadouts:
         elif(weapon.Grip != "" and weapon.Grip not in Grips): errors += weapon.Grip + ' is not a valid Grip!\n'
 
         if(type(weapon.Muzzle) is not int): errors += 'Muzzle should be an integer!\n'
-        if(type(weapon.Magazine) is not int): errors += 'Grip Magazine be an integer!\n'
+        if(type(weapon.Magazine) is not int): errors += 'Magazine should be an integer!\n'
+        if(type(weapon.Tag) is not int): errors += 'Tag should be an integer!\n'
         return errors
 
     def GetLoadoutErrors(loadout: Loadout):
@@ -139,6 +165,25 @@ class PlayerLoadouts:
 
         return errors
 
+    def GetJSONErrors(data):
+        errors = ''
+        for playerKey in requiredPlayerKeys:
+            if(playerKey not in data):
+                errors += playerKey + ' not found!\n'
+
+        for loadout in requiredLoadouts:
+            if(loadout not in data):
+                errors += loadout + ' not found!\n'
+            else:
+                for loadoutKey in requiredLoadoutKeys:
+                    if(loadoutKey not in data[loadout]):
+                        errors += loadoutKey + ' not found in ' + loadout + '!\n'
+                    else:
+                        for weaponKey in requiredWeaponKeys:
+                            if(weaponKey not in data[loadout][loadoutKey]):
+                                errors += weaponKey + ' not found in ' + loadout + ' ' + loadoutKey + '!\n'
+        return errors
+        
     def GetPlayerErrors(player: Player):
         errors = ""
         errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout1)
@@ -146,21 +191,83 @@ class PlayerLoadouts:
         errors += PlayerLoadouts.GetLoadoutErrors(player.Loadout3)
         return errors
 
-    def RegisterPlayer(self, discordId: int, player: Player):
+    def RemovePlayer(self, IP: str, playerName: str):
         for storedPlayer in self.Loadouts:
-            if(storedPlayer.PlayerName == player.PlayerName):
-                if(storedPlayer.DiscordId != discordId):
-                    return 'Player name is already taken!'
+            if(storedPlayer.IP == IP and storedPlayer.PlayerName == playerName):
+                self.Loadouts.remove(storedPlayer)
+                return True
+        return False
+
+    def FindPlayer(self, IP: str, playerName: str = None):
+        players = list()
+        for storedPlayer in self.Loadouts:
+            if(storedPlayer.IP == IP):
+                if(playerName == None):
+                    players.append(storedPlayer)
+                elif(storedPlayer.PlayerName == playerName):
+                    players.append(storedPlayer)
+                    break
+        return players
+        
+    def RegisterPlayerAPI(self, player: Player, IP: str):
+        player.IP = IP
+        playerCountForIP = 0
+        for storedPlayer in self.Loadouts:
+            if(storedPlayer.IP == IP):
+                playerCountForIP += 1
+                if(storedPlayer.PlayerName == player.PlayerName):
+                    self.Loadouts.remove(storedPlayer)
+                    playerCountForIP -= 1
+                    break
+                
+        if(playerCountForIP >= 10):
+            return 'You have too many saved accounts. Remove or edit an existing one.'
+        self.Loadouts.append(player)
+        return ''
+
+    def RegisterPlayer(self, discordId: int, player: Player):
 
         errors = ""
+        print(player)
         errors +=PlayerLoadouts.GetPlayerErrors(player)
         if(errors != ""): return errors
 
+        if(discordId != 0): #Discord
+            for storedPlayer in self.Loadouts:
+                if(storedPlayer.PlayerName == player.PlayerName):
+                    if(storedPlayer.DiscordId != discordId):
+                        return 'Player name is already taken!'
+                    else:
+                        player.DiscordId = discordId
+                        self.Loadouts.remove(storedPlayer)
+                        break
+        else: #API
+            for storedPlayer in self.Loadouts:
+                if(storedPlayer.PlayerName == player.PlayerName):
+                    if(storedPlayer.PassCode != player.PassCode):
+                        return 'Wrong passcode!'
+                    else:
+                        player.DiscordId = storedPlayer.DiscordId
+                        self.Loadouts.remove(storedPlayer)
+                        break
+
         for storedPlayer in self.Loadouts:
-            if(storedPlayer.DiscordId == discordId):
-                self.Loadouts.remove(storedPlayer)
-                break
-                
+            if(storedPlayer.PlayerName == player.PlayerName):
+                if(discordId != 0): #Discord
+                    if(storedPlayer.DiscordId != discordId):
+                        return 'Player name is already taken!'
+                    else:
+                        player.DiscordId = discordId
+                        self.Loadouts.remove(storedPlayer)
+                        break
+                else: #API
+                    if(storedPlayer.PassCode != player.PassCode):
+                        return 'Wrong passcode!'
+                    else:
+                        player.DiscordId = storedPlayer.DiscordId
+                        self.Loadouts.remove(storedPlayer)
+                        break
+                    
         player.DiscordId = discordId
         self.Loadouts.append(player)
         return ''
@@ -199,7 +306,7 @@ class PlayerLoadouts:
             file.write(data)
             return True
         except:
-            print('Failed to read configuration file: {}'.format(fileName))
+            print('Failed to save configuration file: {}'.format(fileName))
             return False
     
     def Load(fileName: str):

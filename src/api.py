@@ -1,6 +1,6 @@
-from distutils.log import error
 from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
+import jsonpickle
 import pandas as pd
 import ast
 from classes.loadouts import Player, PlayerLoadouts
@@ -10,62 +10,41 @@ api = Api(app)
 
 playerLoadouts = PlayerLoadouts.Load('loadouts.json')
 
-class Items(Resource):
+class AllPlayersAPI(Resource): # '/api/players/all'
     def get(self):
-        # data = pd.read_json('items.json')  # read CSV
-        # data = data.to_dict()  # convert dataframe to dictionary
-        # return {'data': data}, 200  # return data and 200 OK code
-        return {'data': "Woah"}, 200  # return data and 200 OK code
-    
-class Loadout(Resource):
+        jsondata = jsonpickle.encode(playerLoadouts.Loadouts, unpicklable=False)
+        data = jsonpickle.decode(jsondata)
+        return data, 200  # return data and 200 OK code
+
+class PlayersAPI(Resource): # '/api/players?playerName=<playerName>'
+    def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('playerName')
+        args = parser.parse_args()
+        playerName = args['playerName']
+        remoteIP = request.remote_addr
+
+        players = playerLoadouts.FindPlayer(remoteIP, playerName)
+        jsondata = jsonpickle.encode(players, unpicklable=False)
+        data = jsonpickle.decode(jsondata)
+
+        return data, 200  # return data and 200 OK code
+
     def post(self):
+        remoteIP = request.remote_addr
         data = request.json
-        errors = ""
-
-        requiredPlayerKeys = [
-            'PlayerName'
-        ]
-
-        requiredLoadouts = [
-            'Loadout1',
-            'Loadout2',
-            'Loadout3'
-        ]
-
-        requiredLoadoutKeys = [
-            'Primary',
-            'Secondary'
-        ]
-
-        requiredWeaponKeys = [
-            'Receiver'
-        ]
-        for playerKey in requiredPlayerKeys:
-            if(playerKey not in data):
-                errors += playerKey + ' not found!\n'
-
-        for loadout in requiredLoadouts:
-            if(loadout not in data):
-                errors += loadout + ' not found!\n'
-            else:
-                for loadoutKey in requiredLoadoutKeys:
-                    if(loadoutKey not in data[loadout]):
-                        errors += loadoutKey + ' not found in ' + loadout + '!\n'
-                    else:
-                        for weaponKey in requiredWeaponKeys:
-                            if(weaponKey not in data[loadout][loadoutKey]):
-                                errors += weaponKey + ' not found in ' + loadout + ' ' + loadoutKey + '!\n'
+        errors = PlayerLoadouts.GetJSONErrors(data)
 
         if(errors != ""):
             return {"errors": errors}, 400
 
         try:
             player = Player.LoadFromJson(data) 
-            result = playerLoadouts.RegisterPlayer(0, player)
+            result = playerLoadouts.RegisterPlayerAPI(player, remoteIP)
             if(result == ''):
                 playerLoadouts.SaveLoadouts('loadouts.json')
                 print('Success!')
-                return {'message': 'Loadout set successfully!'}, 200
+                return {'message': 'Player saved!'}, 200
             else:
                 print('Fail!')
                 print(result)
@@ -73,9 +52,22 @@ class Loadout(Resource):
         except:
             return {'errors': 'Unknown error! Something went wrong with setting your loadout.'}, 400
 
+    def delete(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('playerName')
+        args = parser.parse_args()
+        playerName = args['playerName']
+        remoteIP = request.remote_addr
 
-api.add_resource(Items, '/items')  # '/users' is our entry point for Users
-api.add_resource(Loadout, '/loadout')  # and '/locations' is our entry point for Locations
+        result = playerLoadouts.RemovePlayer(remoteIP, playerName)
+
+        if(result):
+            return {'message': 'Player deleted'}, 200
+        return {'error': 'Player not found'}, 200
+
+api.add_resource(AllPlayersAPI, '/api/players/all')
+api.add_resource(PlayersAPI, '/api/players')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=7778)  # run our Flask app
+    app.run(debug=True, host='0.0.0.0', port=80)  # run our Flask app
+    # app.run(host='0.0.0.0', port=7778)  # run our Flask app

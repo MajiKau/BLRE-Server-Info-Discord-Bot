@@ -28,8 +28,6 @@ class MyClient(Client):
         print('------')
 
         self.Server.Start()
-        self.backgroundTask30.start()
-        self.backgroundTask5.start()
 
     @tasks.loop(seconds=5)  # task runs every 5 seconds
     async def my_background_task(self):
@@ -47,14 +45,6 @@ class MyClient(Client):
             gameInfo = Game('RESTARTING')
             await client.change_presence(status=Status.idle, activity=gameInfo)
             self.Server.Restart()
-
-    @tasks.loop(seconds=1)
-    async def backgroundTask5(self):
-        self.Server.UpdateLoadouts()
-
-    @tasks.loop(seconds=30)
-    async def backgroundTask30(self):
-        self.Server.ScanPlayers()
 
     @my_background_task.before_loop
     async def before_my_task(self):
