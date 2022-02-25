@@ -21,19 +21,22 @@ class MyClient(Client):
         super().__init__(*args, **kwargs)
 
         configFiles = [configFile for configFile in os.listdir(configDir) if os.path.isfile(os.path.join(configDir, configFile))]
-        numconfigFiles = len(configFiles)
-        if (numconfigFiles == 1):
+        numConfigFiles = len(configFiles)
+        if (numConfigFiles == 1):
             configFile = configDir + configFiles[0]
-        elif (numconfigFiles > 1):
+        elif (numConfigFiles > 1):
             print("Multiple config files detected, please select one:")
             for index, configFile in enumerate(configFiles):
                 print(str(index+1) + ". " + configFile)
-            configSelection = input("Please enter your selection (1-" + str(numconfigFiles+1) + "): ")
-            print(configSelection)
-            while int(configSelection) not in range(1, numconfigFiles+1):
-                configSelection = input("Invalid Selection!\nPlease enter your selection (1-" + str(numconfigFiles+1) + "): ")
-            configFile = configFiles[configSelection-1]
-        exit()
+            configSelection = input("Please enter your selection (1-" + str(numConfigFiles) + "): ")
+            while configSelection not in range(1, numConfigFiles+1):
+                try:
+                    configSelection = int(configSelection)
+                    if configSelection not in range(1, numConfigFiles+1):
+                        configSelection = input("Invalid Selection!\nPlease enter your selection: ")
+                except:
+                    configSelection = input("Invalid Selection!\nPlease enter your selection: ")
+            configFile = configDir + "/" + configFiles[configSelection-1]
 
         self.Server = Server(configFile)
         self.currentServerInfo = 'NOT ONLINE'
