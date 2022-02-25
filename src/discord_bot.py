@@ -6,7 +6,10 @@ from classes.server import Server
 
 import utils.process_runner as pr
 
+import os, os.path
+
 tokenFile = './token.txt'
+configDir = './configs'
 configFile = './configs/server_config.json'
 pr.gameServerFile = '\"C:/Program Files (x86)/Steam/steamapps/common/blacklightretribution/Binaries/Win32/FoxGame-win32-Shipping-Patched-Server.exe\"'
 token = open(tokenFile).readline()
@@ -17,7 +20,25 @@ class MyClient(Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.Server = Server(configFile)  # TODO: List configs in folder and let user select one
+        configFiles = [configFile for configFile in os.listdir(configDir) if os.path.isfile(os.path.join(configDir, configFile))]
+        numConfigFiles = len(configFiles)
+        if (numConfigFiles == 1):
+            configFile = configDir + configFiles[0]
+        elif (numConfigFiles > 1):
+            print("Multiple config files detected, please select one:")
+            for index, configFile in enumerate(configFiles):
+                print(str(index+1) + ". " + configFile)
+            configSelection = input("Please enter your selection (1-" + str(numConfigFiles) + "): ")
+            while configSelection not in range(1, numConfigFiles+1):
+                try:
+                    configSelection = int(configSelection)
+                    if configSelection not in range(1, numConfigFiles+1):
+                        configSelection = input("Invalid Selection!\nPlease enter your selection: ")
+                except:
+                    configSelection = input("Invalid Selection!\nPlease enter your selection: ")
+            configFile = configDir + "/" + configFiles[configSelection-1]
+
+        self.Server = Server(configFile)
         self.currentServerInfo = 'NOT ONLINE'
 
         # Start the task to run in the background
