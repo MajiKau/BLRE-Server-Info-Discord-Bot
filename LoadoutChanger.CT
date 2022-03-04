@@ -393,13 +393,24 @@ function UpdateLoadouts()
     --print(#players)
     for x=1, #players do
         local player = players[x]
+        local foundLoadout = false
         --print(player[2] .. " : " .. player[5])
         for y=1, #playerLoadouts.Loadouts do
             local loadout = playerLoadouts.Loadouts[y]
             --print(loadout.PlayerName .. " : " .. loadout.IP)
             if(player[2] == loadout.PlayerName and player[5] == loadout.IP) then
                 SetLoadout(player, loadout)
+                foundLoadout = true
                 break
+            end
+        end
+        if(foundLoadout == false) then
+            for y=1, #playerLoadouts.Loadouts do
+                local loadout = playerLoadouts.Loadouts[y]
+                if(player[2] == loadout.PlayerName) then
+                    SetLoadout(player, loadout)
+                    break
+                end
             end
         end
     end
