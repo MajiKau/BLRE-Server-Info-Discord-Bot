@@ -8,20 +8,6 @@
   <LuaScript>package.path = TrainerOrigin..'lua\\?.lua'
 Json = require("lunajson")
 
---receivers = {}
---receiverAddresses = {}
-
---stocks = {}
---stockAddresses = {}
-
---barrels = {}
---barrelAddresses = {}
-
---scopes = {}
---scopeAddresses = {}
-
---players = {}
---playerAddresses = {}
 
 primaryReceiverOffset = 0x798
 primaryMuzzleOffset = 0x79C --Int
@@ -43,8 +29,11 @@ secondaryTagOffset = 0x7DC --Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
 
+itemNameOffset = 0x154
+receveiverNameOffset = 0x30C
+attachmentNameOffset = 0xCC
+
 armorOffset = 0xC8C -- Camo, Upper, Lower, Helmet
-camoOffset = 0xC8C
 
 gearOffset = 0xC94
 tacticalOffset = 0xC98
@@ -58,11 +47,18 @@ maxUpperBody = 10
 maxLowerBody = 11
 maxCamo = 163
 
---assaultRifle = 0
---submachineGun = 0
---boltActionRifle = 0
+nameAndIpOffset = 0x9C
+nameOffset = 0x1EC
+ipOffset = 0x234
 
---playerLoadouts = {}
+playerValue = 0x01773220
+playerValueString = '20 32 77 01'
+
+itemValueString = '80 01 6A 01'
+
+populationBaseAddress = '"FoxGame-win32-Shipping-Patched-Server.exe"+01522DE4'
+populationAddressOffset1 =0x0
+populationAddressOffset2 =0x8
 
 CETrainer_CEButton1.Enabled = true
 CETrainer_CELabel1.Caption = 'Click Enable after making sure\nthe game server is running'
@@ -93,14 +89,25 @@ function GetSecondaryReceiver(playerAddress)
 end
 
 function GetPlayerName(address)
-  local pointer = address + 0x9C
+  local pointer = address + nameAndIpOffset
   pointer = readPointer(pointer)
   if(pointer == nil) then return nil end
-  pointer = pointer + 0x1EC
+  pointer = pointer + nameOffset
   pointer = readPointer(pointer)
   if(pointer == nil) then return nil end
   local name = readString(pointer, 64, true)
   return name
+end
+
+function GetPlayerIP(address)
+  local pointer = address + nameAndIpOffset
+  pointer = readPointer(pointer)
+  if(pointer == nil) then return nil end
+  pointer = pointer + ipOffset
+  pointer = readPointer(pointer)
+  if(pointer == nil) then return nil end
+  local ip = readString(pointer, 64, true)
+  return ip
 end
 
 function ScanPlayers(totalPlayers)
@@ -110,7 +117,6 @@ function ScanPlayers(totalPlayers)
     --print(#players)
     --print(totalPlayers)
     if(#players == totalPlayers) then
-        local playerValue = 0x01773220
         for x=1, #players do
             local value = readInteger(players[x][1])
             if(value ~= playerValue) then
@@ -138,26 +144,26 @@ function ScanPlayers(totalPlayers)
 
     --print("Scanning Players")
 
-    playerAddresses = AOBScan("20 32 77 01")
-
-    --print(playerAddresses.getCount())
-
-  --if(playerAddresses == 0) then
-  --  playerAddresses = AOBScan("20 32 77 01")
-  --end
-
+    playerAddresses = AOBScan(playerValueString)
     --print(playerAddresses.getCount())
 
     players = {}
+    bots = {}
     for x=0, playerAddresses.getCount()-1 do
         local address = tonumber(playerAddresses[x],16)
         local name = GetPlayerName(address)
-        --print(name)
+        local ip = GetPlayerIP(address)
         if(name ~= nil) then
             local receiver = GetPrimaryReceiver(address)
             local receiver2 = GetSecondaryReceiver(address)
             if(receiver ~= nil and receiver ~= 0) then
-                table.insert(players, {address, name, receiver, receiver2})
+                if(ip ~= nil) then
+                    --print("player: " .. address .. " " .. name .. " " .. ip)
+                    table.insert(players, {address, name, receiver, receiver2, ip})
+                else
+                    --print("bot: " .. address .. " " .. name)
+                    table.insert(bots, {address, name, receiver, receiver2, ip})
+                end
             end
         end
     end
@@ -166,10 +172,10 @@ function ScanPlayers(totalPlayers)
 end
 
 function FindReceiverName(address)
-  local pointer = address + 0x154
+  local pointer = address + itemNameOffset
   pointer = readPointer(pointer)
   if(pointer ~= nil) then
-    pointer = pointer + 0x30C
+    pointer = pointer + receveiverNameOffset
     pointer = readPointer(pointer)
     if(pointer ~= nil) then
       local name = readString(pointer, 64, true)
@@ -178,63 +184,6 @@ function FindReceiverName(address)
   end
 
   return nil
-end
-
-function ScanReceivers()
-  if(#receivers ~= 0) then
-    return receivers
-  end
-
-  if(#receiverAddresses == 0) then
-    local offsetAddresses = AOBScan("36 00 A0 00")
-    for x=0, offsetAddresses.getCount()-1 do
-      local offsetAddress = tonumber(offsetAddresses[x],16)
-      local address = offsetAddress - 0xCC
-      table.insert(receiverAddresses, address)
-    end
-  end
-
-
-  for x=1, #receiverAddresses do
-    local address = receiverAddresses[x]
-    if(address ~= nil) then
-      local name = FindReceiverName(address)
-      if(name ~= nil) then
-        table.insert(receivers, {address, name})
-
-        if(name == "Assault Rifle") then
-            assaultRifle = address
-        end
-        if(name == "Submachine Gun") then
-            submachineGun = address
-        end
-        if(name == "Bolt-Action Rifle") then
-            boltActionRifle = address
-        end
-
-        --print(name)
-
-      end
-    end
-  end
-
-  return receivers
-end
-
-
-
-function GetPlayerPrimary(name)
-  --ScanReceivers()
-  --ScanPlayers()
-
-  for x=1, #players do
-    local player = players[x]
-    if(player[2] == name) then
-      --print(player[2])
-      --print(player[3][2])
-      return player[3]
-    end
-  end
 end
 
 function SetPlayerPrimary(player, weapon)
@@ -248,11 +197,6 @@ function SetPlayerPrimary(player, weapon)
 
     if(receiver == nil) then return false end
     local currentReceiver = readPointer(player[1]+primaryReceiverOffset)
-    if(currentReceiver == receiver[1] and currentReceiver ~= assaultRifle and
-     currentReceiver ~= submachineGun and currentReceiver ~= boltActionRifle) then
-        --print("Nothing to change")
-        return false
-    end
 
     local stock = nil
     for x=1, #stocks do
@@ -282,31 +226,28 @@ function SetPlayerPrimary(player, weapon)
             break
         end
     end
-  --print("Changing Primary")
+
+    if(type(weapon.Tag) ~= "number" or weapon.Tag &lt; 1 or weapon.Tag &gt; maxTag) then
+        weapon.Tag = math.floor(math.random()*maxTag)+1
+    end
+
     writeInteger(player[1]+primaryReceiverOffset, receiver[1])
     if(stock ~= nil) then
         writeInteger(player[1]+primaryStockOffset, stock[1])
-    --else
-    --    writeInteger(player[1]+primaryStockOffset, 0)
     end
     if(barrel ~= nil) then
         writeInteger(player[1]+primaryBarrelOffset, barrel[1])
-    --else
-    --    writeInteger(player[1]+primaryBarrelOffset, 0)
     end
     if(scope ~= nil) then
         writeInteger(player[1]+primaryScopeOffset, scope[1])
-    --else
-    --    writeInteger(player[1]+primaryScopeOffset, 0)
     end
     if(grip ~= nil) then
         writeInteger(player[1]+primaryGripOffset, grip[1])
-    --else
-    --    writeInteger(player[1]+primaryGripOffset, 0)
     end
     writeInteger(player[1]+primaryMuzzleOffset, weapon.Muzzle)
     writeInteger(player[1]+primaryMagazineOffset, weapon.Magazine)
-    writeInteger(player[1]+primaryTagOffset, math.floor(math.random()*maxTag)+1)
+    writeInteger(player[1]+primaryTagOffset, weapon.Tag)
+    writeInteger(player[1]+primaryAmmoTypeOffset, 0)
     return true
 end
 
@@ -348,39 +289,36 @@ function SetPlayerSecondary(player, weapon)
             break
         end
     end
-  --print("Changing Secondary")
     writeInteger(player[1]+secondaryReceiverOffset, receiver[1])
     if(stock ~= nil) then
         writeInteger(player[1]+secondaryStockOffset, stock[1])
-    --else
-    --    writeInteger(player[1]+secondaryStockOffset, 0)
     end
     if(barrel ~= nil) then
         writeInteger(player[1]+secondaryBarrelOffset, barrel[1])
-    --else
-    --    writeInteger(player[1]+secondaryBarrelOffset, 0)
     end
     if(scope ~= nil) then
         writeInteger(player[1]+secondaryScopeOffset, scope[1])
-    --else
-    --    writeInteger(player[1]+secondaryScopeOffset, 0)
     end
     if(grip ~= nil) then
         writeInteger(player[1]+secondaryGripOffset, grip[1])
-    --else
-    --    writeInteger(player[1]+secondaryGripOffset, 0)
     end
+
+    if(type(weapon.Tag) ~= "number" or weapon.Tag &lt; 1 or weapon.Tag &gt; maxTag) then
+        weapon.Tag = math.floor(math.random()*maxTag)+1
+    end
+
     writeInteger(player[1]+secondaryMuzzleOffset, weapon.Muzzle)
     writeInteger(player[1]+secondaryMagazineOffset, weapon.Magazine)
-    writeInteger(player[1]+secondaryTagOffset, math.floor(math.random()*maxTag)+1)
+    writeInteger(player[1]+primaryTagOffset, weapon.Tag)
+    writeInteger(player[1]+secondaryAmmoTypeOffset, 0)
     return true
 end
 
 function SetPlayerGear(player, loadout)
-    if(type(loadout.Gear1) ~= "number" or loadout.Gear1>maxGear) then loadout.Gear1 = 46 end
-    if(type(loadout.Gear2) ~= "number" or loadout.Gear2>maxGear) then loadout.Gear2 = 46 end
-    if(type(loadout.Gear3) ~= "number" or loadout.Gear3>maxGear) then loadout.Gear3 = 46 end
-    if(type(loadout.Gear4) ~= "number" or loadout.Gear4>maxGear) then loadout.Gear4 = 46 end
+    if(type(loadout.Gear1) ~= "number" or loadout.Gear1 &gt; maxGear) then loadout.Gear1 = 46 end
+    if(type(loadout.Gear2) ~= "number" or loadout.Gear2 &gt; maxGear) then loadout.Gear2 = 46 end
+    if(type(loadout.Gear3) ~= "number" or loadout.Gear3 &gt; maxGear) then loadout.Gear3 = 46 end
+    if(type(loadout.Gear4) ~= "number" or loadout.Gear4 &gt; maxGear) then loadout.Gear4 = 46 end
 
     local gear1 = loadout.Gear1
     local gear2 = loadout.Gear2 * 0x100
@@ -402,10 +340,10 @@ function SetPlayerSex(player, loadout)
 end
 
 function SetPlayerArmor(player, loadout)
-    if(type(loadout.Camo) ~= "number" or loadout.Camo>maxCamo) then loadout.Camo = 0 end
-    if(type(loadout.UpperBody) ~= "number" or loadout.UpperBody>maxUpperBody) then loadout.UpperBody = 0 end
-    if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody>maxLowerBody) then loadout.LowerBody = 0 end
-    if(type(loadout.Helmet) ~= "number" or loadout.Helmet>maxHelmet) then loadout.Helmet = 0 end
+    if(type(loadout.Camo) ~= "number" or loadout.Camo &gt; maxCamo) then loadout.Camo = 0 end
+    if(type(loadout.UpperBody) ~= "number" or loadout.UpperBody &gt; maxUpperBody) then loadout.UpperBody = 0 end
+    if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody &gt; maxLowerBody) then loadout.LowerBody = 0 end
+    if(type(loadout.Helmet) ~= "number" or loadout.Helmet &gt; maxHelmet) then loadout.Helmet = 0 end
 
     local armor1 = loadout.Camo
     local armor2 = loadout.UpperBody * 0x100
@@ -452,13 +390,14 @@ function SetLoadout(player, loadout)
 end
 
 function UpdateLoadouts()
+    --print(#players)
     for x=1, #players do
         local player = players[x]
-        --print(player[2])
+        --print(player[2] .. " : " .. player[5])
         for y=1, #playerLoadouts.Loadouts do
             local loadout = playerLoadouts.Loadouts[y]
-            --print(loadout.PlayerName)
-            if(player[2] == loadout.PlayerName) then
+            --print(loadout.PlayerName .. " : " .. loadout.IP)
+            if(player[2] == loadout.PlayerName and player[5] == loadout.IP) then
                 SetLoadout(player, loadout)
                 break
             end
@@ -487,53 +426,28 @@ end
 
 function LoadLoadouts()
     local path = TrainerOrigin.."src\\loadouts.json"
-    local contents = ""
     local loadouts = {}
     local file, err = io.open( path, "r" )
-
     if file then
         -- read all contents of file into a string
         local contents = file:read( "*a" )
-        --print(contents)
-        loadouts = Json.decode(contents);
         io.close( file )
-        return loadouts
+        if(playerLoadoutsRaw ~= contents) then
+          playerLoadoutsRaw = contents
+          loadouts = Json.decode(contents);
+          return loadouts
+        end
+        return nil
     end
     print('Failed to open loadouts.json\n'..err)
     return nil
 end
 
-scanCount = 0
-
-function Update30Seconds(totalPlayers)
-    scanCount = 0
-    CETrainer_CEButton1.Caption = scanCount
-    --print('Update! '..totalPlayers)
-    ScanPlayers(totalPlayers)
-    playerLoadouts = LoadLoadouts()
-    --print('Players: '..#players)
-    --print('Player Loadouts: '..#playerLoadouts.Loadouts)
-end
-
-function Update5Seconds()
-    scanCount = scanCount+1
-    CETrainer_CEButton1.Caption = scanCount
-    --print('HEY')
-    if(#players &gt; 0) then
-        --print('#players')
-        if(#playerLoadouts.Loadouts &gt; 0) then
-            --print('playerLoadouts')
-            UpdateLoadouts()
-        end
-    end
-end
-
-
 function FindAttachmentName(address)
-  local pointer = address + 0x154
+  local pointer = address + itemNameOffset
   pointer = readPointer(pointer)
   if(pointer ~= nil) then
-    pointer = pointer + 0xCC
+    pointer = pointer + attachmentNameOffset
     pointer = readPointer(pointer)
     if(pointer ~= nil) then
       local name = readString(pointer, 128, true)
@@ -544,91 +458,8 @@ function FindAttachmentName(address)
   return nil
 end
 
-
-function ScanStocks()
-  if(#stocks ~= 0) then
-    return stocks
-  end
-
-  if(#stockAddresses == 0) then
-    local offsetAddresses = AOBScan("58 1B 01 00")
-    for x=0, offsetAddresses.getCount()-1 do
-      local offsetAddress = tonumber(offsetAddresses[x],16)
-      local address = offsetAddress - 0x2C
-      table.insert(stockAddresses, address)
-    end
-  end
-
-
-  for x=1, #stockAddresses do
-    local address = stockAddresses[x]
-    if(address ~= nil) then
-      local name = FindAttachmentName(address)
-      if(name ~= nil) then
-        table.insert(stocks, {address, name})
-        --print(name)
-      end
-    end
-  end
-end
-
-function ScanBarrels()
-  if(#barrels ~= 0) then
-    return barrels
-  end
-
-  if(#barrelAddresses == 0) then
-    local offsetAddresses = AOBScan("6F 16 01 00")
-    for x=0, offsetAddresses.getCount()-1 do
-      local offsetAddress = tonumber(offsetAddresses[x],16)
-      local address = offsetAddress - 0x2C
-      table.insert(barrelAddresses, address)
-    end
-  end
-
-
-  for x=1, #barrelAddresses do
-    local address = barrelAddresses[x]
-    if(address ~= nil) then
-      local name = FindAttachmentName(address)
-      if(name ~= nil) then
-        table.insert(barrels, {address, name})
-        --print(name)
-      end
-    end
-  end
-end
-
-function ScanScopes()
-  if(#scopes ~= 0) then
-    return scopes
-  end
-
-  if(#scopeAddresses == 0) then
-    local offsetAddresses = AOBScan("3D 1E 01 00")
-    for x=0, offsetAddresses.getCount()-1 do
-      local offsetAddress = tonumber(offsetAddresses[x],16)
-      local address = offsetAddress - 0x2C
-      table.insert(scopeAddresses, address)
-    end
-  end
-
-
-  for x=1, #scopeAddresses do
-    local address = scopeAddresses[x]
-    if(address ~= nil) then
-      local name = FindAttachmentName(address)
-      if(name ~= nil) then
-        table.insert(scopes, {address, name})
-        --print(name)
-      end
-    end
-  end
-end
-
-
 function InitialScan()
-    local everything = AOBScan('80 01 6A 01')
+    local everything = AOBScan(itemValueString)
     for x = 0, everything.getCount()-1 do
         local address = tonumber(everything[x],16)
         local name = FindAttachmentName(address)
@@ -649,7 +480,6 @@ function InitialScan()
             if(name ~= nil and name ~= ' ' and name ~= '') then
                 if(has_value(items.Receivers, name)) then
                     table.insert(receivers, {address, name})
-
                     if(name == "Assault Rifle") then
                         assaultRifle = address
                     end
@@ -669,48 +499,54 @@ function InitialScan()
     end
 end
 
-
 function has_value (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
         end
     end
-
     return false
 end
 
-function print_names(tab)
-    for x = 1, #tab do
-        print(tab[x][2])
+timerCounter = 0
+local function timer_tick(timer)
+  
+    -- Every 5 seconds
+    if(math.fmod(timerCounter,5) == 0) then
+        local pointer = populationBaseAddress
+        pointer = readPointer(pointer) + populationAddressOffset1
+        pointer = readPointer(pointer) + populationAddressOffset2
+        local totalPlayers = readInteger(pointer)
+        ScanPlayers(totalPlayers)
     end
-end
 
 
-function FindOtherName(address)
-  local pointer = address + 0x154
-  pointer = readPointer(pointer)
-  if(pointer ~= nil) then
-    pointer = pointer + 0xCC
-    pointer = readPointer(pointer)
-    if(pointer ~= nil) then
-      local name = readString(pointer, 128, true)
-      return name
-    end
-  end
+    -- Every second if there are players
+    if(#players &gt; 0) then
 
-  return nil
-end
-
-function print_names2(tab)
-    for x = 1, #tab do
-        local name = FindOtherName(tab[x][1])
-        if(name ~= nil) then
-            print(name)
+        -- Every 10 seconds
+        if(math.fmod(timerCounter,10) == 0) then
+            local loadouts = LoadLoadouts()
+            if(loadouts ~= nil) then
+                playerLoadouts = loadouts
+            end
         end
+
+        --print('#players: ' .. #players)
+        if(#playerLoadouts.Loadouts &gt; 0) then
+            --print('playerLoadouts')
+            UpdateLoadouts()
+        end
+        CETrainer_CEButton1.Caption = #players .. '/16 | ' .. timerCounter
+    end
+
+    timerCounter = timerCounter + 1
+
+    -- code setting done state.
+    if DoneState == true then
+        timer.destroy()
     end
 end
-
 
 
 
@@ -745,16 +581,6 @@ end
 
 --TRAINERGENERATORSTOP--
 function CETrainer_CEButton1Click(sender)
-
-    --receivers = {}
-    --receiverAddresses = {}
-    --stocks = {}
-    --stockAddresses = {}
-    --barrels = {}
-    --barrelAddresses = {}
-    --scopes = {}
-    --scopeAddresses = {}
-
     items = LoadItems()
 
     receivers = {}
@@ -774,32 +600,20 @@ function CETrainer_CEButton1Click(sender)
 
 
     playerLoadouts = {}
+    playerLoadoutsRaw = ""
 
-    openLuaServer('blrevive')
-    --openLuaServer('blreviveDev')
-    --ScanReceivers()
-    --ScanBarrels()
-    --ScanStocks()
-    --ScanScopes()
+    local loadouts = LoadLoadouts()
+    if(loadouts ~= nil) then
+        playerLoadouts = loadouts
+    end
 
     CETrainer_CEButton1.Enabled = false
     CETrainer_CELabel1.Caption = 'Attached to\n' .. (process or 'NOTHING')
     CETrainer_CEButton1.Caption = 'Running'
 
-
-    --print("------RECEIVERS------")
-    --print_names(receivers)
-    --print("------STOCKS------")
-    --print_names(stocks)
-    --print("------BARRELS------")
-    --print_names(barrels)
-    --print("------SCOPES------")
-    --print_names(scopes)
-    --print("------GRIPS------")
-    --print_names(grips)
-    --print("------UNKNOWNS------")
-    --print_names2(unknowns)
-
+    local someTimer = createTimer()
+    someTimer.Interval = 1000
+    someTimer.OnTimer = timer_tick
 end
 
 

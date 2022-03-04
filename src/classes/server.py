@@ -9,27 +9,7 @@ from classes.server_structs import ServerOptions, ServerInfo
 from discord.message import Message
 from utils.process_runner import restartServer, startServer, get_hwnds_for_pid
 from utils.process_names import getServerInfo
-from utils.cheatengine_communication import scan_players, update_loadouts
 from subprocess import Popen
-
-requiredPlayerKeys = [
-    'PlayerName'
-]
-
-requiredLoadouts = [
-    'Loadout1',
-    'Loadout2',
-    'Loadout3'
-]
-
-requiredLoadoutKeys = [
-    'Primary',
-    'Secondary'
-]
-
-requiredWeaponKeys = [
-    'Receiver'
-]
 
 class Server:
 
@@ -144,43 +124,13 @@ class Server:
     def ResetOptions(self):
         return self.LoadConfig(self.DefaultConfig)
 
-    def ScanPlayers(self):
-        if(self.Starting != True and self.Info.PlayerCount > 0):
-            scan_players(self.Info.PlayerCount + self.Options.LaunchOptions.BotCount)
-            #print('players')
-        return
-
-    def UpdateLoadouts(self):
-        if(self.Starting != True and self.Info.PlayerCount > 0 and self.Info.Map != 'Lobby'):
-            update_loadouts()
-            #print('loadout')
-        return
-
-    def SetPrimary(self, playerName, receiverName):
-        self.PlayerLoadouts[playerName] = receiverName
-
-    # def RegisterPlayer(self, discordId: int, playerName: str, receiverP1: str = 'Heavy Assault Rifle', receiverS1: str = 'Revolver', receiverP2: str = 'LMG-Recon', receiverS2: str = 'Machine Pistol', receiverP3: str = 'Combat Rifle', receiverS3: str = 'Heavy Pistol'):
-    #     self.PlayerLoadouts.RegisterPlayerTemp(discordId, playerName, receiverP1, receiverS1, receiverP2, receiverS2, receiverP3, receiverS3)
-    #     self.PlayerLoadouts.SaveLoadouts('loadouts.json')
-
     def RegisterLoadout(self, discordId: int, jsonLoadout: str):
         try:
             data = json.loads(jsonLoadout)
 
-            for playerKey in requiredPlayerKeys:
-                if(playerKey not in data):
-                    return playerKey + ' not found!'
-
-            for loadout in requiredLoadouts:
-                if(loadout not in data):
-                    return loadout + ' not found!'
-                for loadoutKey in requiredLoadoutKeys:
-                    if(loadoutKey not in data[loadout]):
-                        return loadoutKey + ' not found in ' + loadout + '!'
-
-                    for weaponKey in requiredWeaponKeys:
-                        if(weaponKey not in data[loadout][loadoutKey]):
-                            return weaponKey + ' not found in ' + loadout + ' ' + loadoutKey + '!'
+            errors = PlayerLoadouts.GetJSONErrors(data)
+            if(errors != ''):
+                return errors
 
             player = Player.LoadFromJson(data) 
             result = self.PlayerLoadouts.RegisterPlayer(discordId, player)
