@@ -9,8 +9,7 @@ import utils.process_runner as pr
 import os, os.path
 
 tokenFile = './token.txt'
-configDir = './configs'
-configFile = './configs/server_config.json'
+configDir = './configs/'
 pr.gameServerFile = '\"C:/Program Files (x86)/Steam/steamapps/common/blacklightretribution/Binaries/Win32/FoxGame-win32-Shipping-Patched-Server.exe\"'
 token = open(tokenFile).readline()
 
