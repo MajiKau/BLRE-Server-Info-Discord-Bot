@@ -58,7 +58,7 @@ class Server:
         if(self.Starting == True):
             return 'RESTARTING'
         self.Info = getServerInfo(self.Hwnd)
-        if(self.Info.PlayerCount == -1):
+        if(self.Info.PlayerCount > self.Options.LaunchOptions.MaxPlayers):
             return '??/' + self.Options.LaunchOptions.MaxPlayers + ' | ' + self.Info.Map
         if(self.Info.Map == ''):
             return 'NOT ONLINE'
