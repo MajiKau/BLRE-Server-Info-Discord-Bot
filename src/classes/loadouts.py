@@ -228,7 +228,7 @@ class PlayerLoadouts:
     def RegisterPlayer(self, discordId: int, player: Player):
 
         errors = ""
-        print(player)
+        #print(player)
         errors +=PlayerLoadouts.GetPlayerErrors(player)
         if(errors != ""): return errors
 
