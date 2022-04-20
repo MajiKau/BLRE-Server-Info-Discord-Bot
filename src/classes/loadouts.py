@@ -51,6 +51,7 @@ class Weapon:
     Scope: str = ''
     Grip: str = ''
     Tag: int = 1
+    Camo: int = 0
     def LoadFromJson(json):
         if 'Muzzle' not in json:
             json['Muzzle'] = 0
@@ -66,7 +67,9 @@ class Weapon:
             json['Grip'] = ''
         if 'Tag' not in json:
             json['Tag'] = 1
-        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'],json['Tag'])
+        if 'Camo' not in json:
+            json['Camo'] = 0
+        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'],json['Tag'],json['Camo'])
 
 @dataclass
 class Loadout:		
@@ -146,6 +149,7 @@ class PlayerLoadouts:
         if(type(weapon.Muzzle) is not int): errors += 'Muzzle should be an integer!\n'
         if(type(weapon.Magazine) is not int): errors += 'Magazine should be an integer!\n'
         if(type(weapon.Tag) is not int): errors += 'Tag should be an integer!\n'
+        if(type(weapon.Camo) is not int): errors += 'Camo should be an integer!\n'
         return errors
 
     def GetLoadoutErrors(loadout: Loadout):
