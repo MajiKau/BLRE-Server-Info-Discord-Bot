@@ -48,6 +48,8 @@ maxHelmet = 88
 maxUpperBody = 10
 maxLowerBody = 11
 maxCamo = 163
+maxSkin = 34
+defaultSkin = 0xFFFFFFFF -- 4294967295
 
 nameAndIpOffset = 0x9C
 nameOffset = 0x1EC
@@ -348,6 +350,7 @@ function SetPlayerArmor(player, loadout)
     if(type(loadout.UpperBody) ~= "number" or loadout.UpperBody &gt; maxUpperBody) then loadout.UpperBody = 0 end
     if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody &gt; maxLowerBody) then loadout.LowerBody = 0 end
     if(type(loadout.Helmet) ~= "number" or loadout.Helmet &gt; maxHelmet) then loadout.Helmet = 0 end
+    if(type(loadout.Skin) ~= "number" or loadout.Skin &gt; maxSkin or loadout.Skin &lt; 0) then loadout.Skin = defaultSkin end
 
     local armor1 = loadout.Camo
     local armor2 = loadout.UpperBody * 0x100
@@ -357,6 +360,7 @@ function SetPlayerArmor(player, loadout)
     local armorCombined = armor1+armor2+armor3+armor4
 
     writeInteger(player[1]+armorOffset, armorCombined)
+    writeInteger(player[1]+skinOffset, loadout.Skin)
 end
 
 function SetLoadout(player, loadout)

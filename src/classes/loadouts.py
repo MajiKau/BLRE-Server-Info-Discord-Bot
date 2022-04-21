@@ -85,6 +85,7 @@ class Loadout:
     LowerBody: int = 0
     Helmet: int = 0
     IsFemale: bool = 0
+    Skin: int = 0xFFFFFFFF
     def LoadFromJson(json):
         if 'Gear1' not in json:
             json['Gear1'] = 1
@@ -106,7 +107,9 @@ class Loadout:
             json['Helmet'] = 0
         if 'IsFemale' not in json:
             json['IsFemale'] = False
-        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'], json['IsFemale'])
+        if 'Skin' not in json:
+            json['Skin'] = 0xFFFFFFFF
+        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'], json['IsFemale'], json['Skin'])
 
 @dataclass
 class Player(NoneRefersDefault):		
@@ -166,6 +169,7 @@ class PlayerLoadouts:
         if(type(loadout.LowerBody) is not int): errors += 'LowerBody should be an integer!\n'
         if(type(loadout.Helmet) is not int): errors += 'Helmet should be an integer!\n'
         if(type(loadout.IsFemale) is not bool): errors += 'IsFemale should be a boolean!\n'
+        if(type(loadout.Skin) is not int): errors += 'Skin should be an integer!\n'
 
         return errors
 

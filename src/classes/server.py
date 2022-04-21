@@ -139,7 +139,8 @@ class Server:
                 return 'Loadout set successfully!'
             else:
                 return result
-        except:
+        except Exception as e:
+            print(e)
             return 'Unknown error! Something went wrong with setting your loadout.'
 
     async def Command(self, message: Message):
@@ -155,97 +156,106 @@ class Server:
         registerHelp = """Used to set player loadouts. Use the `list` command to get available weapon parts. Example usage:
 ```register 
 {
- "PlayerName": "YourPlayerNameHere",
- "Loadout1": {
-  "Primary": {
-   "Receiver": "Bullpup Full Auto",
-   "Muzzle": 1,
-   "Stock": "Silverwood z1200 BPFA",
-   "Barrel": "Hullbreach 047BAR",
-   "Magazine": 152,
-   "Scope": "Aim Point Ammo Counter",
-   "Grip": ""
-  },
-  "Secondary": {
-   "Receiver": "Snub 260",
-   "Muzzle": 0,
-   "Stock": "No Stock",
-   "Barrel": "No Barrel Mod",
-   "Magazine": 177,
-   "Scope": "No Optic Mod",
-   "Grip": ""
-  },
-  "Gear1": 15,
-  "Gear2": 25,
-  "Gear3": 5,
-  "Gear4": 6,
-  "Tactical": 1,
-  "Camo": 78,
-  "UpperBody": 6,
-  "LowerBody": 4,
-  "Helmet": 17,
-  "IsFemale": true
- },
- "Loadout2": {
-  "Primary": {
-   "Receiver": "Combat Rifle",
-   "Muzzle": 3,
-   "Stock": "Krane Extender Stock",
-   "Barrel": "Silverwood Light Accuracy Barrel",
-   "Magazine": 24,
-   "Scope": "4X Ammo Counter Scope",
-   "Grip": ""
-  },
-  "Secondary": {
-   "Receiver": "Shotgun",
-   "Muzzle": 0,
-   "Stock": "Redsand Compensator Stock",
-   "Barrel": "Krane SG Bar-20",
-   "Magazine": 29,
-   "Scope": "EMI Infrared Scope",
-   "Grip": "Briar BrSGP1"
-  },
-  "Gear1": 7,
-  "Gear2": 8,
-  "Gear3": 9,
-  "Gear4": 10,
-  "Tactical": 6,
-  "Camo": 13,
-  "UpperBody": 5,
-  "LowerBody": 7,
-  "Helmet": 15,
-  "IsFemale": true
- },
- "Loadout3": {
-  "Primary": {
-   "Receiver": "Assault Rifle",
-   "Muzzle": 2,
-   "Stock": "Taurex Stabilizing Stock",
-   "Barrel": "Briar Accuracy Barrel",
-   "Magazine": 14,
-   "Scope": "EMI Tech Scope",
-   "Grip": ""
-  },
-  "Secondary": {
-   "Receiver": "Heavy Pistol",
-   "Muzzle": 15,
-   "Stock": "Silverwood Compensator Stock",
-   "Barrel": "V2 Z900 Mod",
-   "Magazine": 48,
-   "Scope": "EMI Infrared Scope Mk. 2",
-   "Grip": ""
-  },
-  "Gear1": 11,
-  "Gear2": 12,
-  "Gear3": 13,
-  "Gear4": 14,
-  "Tactical": 4,
-  "Camo": 92,
-  "UpperBody": 2,
-  "LowerBody": 2,
-  "Helmet": 50,
-  "IsFemale": false
- }
+"PlayerName": "YourPlayerNameHere",
+"Loadout1": {
+"Primary": {
+"Receiver": "Bullpup Full Auto",
+"Muzzle": 1,
+"Stock": "Silverwood z1200 BPFA",
+"Barrel": "Hullbreach 047BAR",
+"Magazine": 152,
+"Scope": "Aim Point Ammo Counter",
+"Grip": "",
+"Camo": 12
+},
+"Secondary": {
+"Receiver": "Snub 260",
+"Muzzle": 0,
+"Stock": "No Stock",
+"Barrel": "No Barrel Mod",
+"Magazine": 177,
+"Scope": "No Optic Mod",
+"Grip": "",
+"Camo": 32
+},
+"Gear1": 15,
+"Gear2": 25,
+"Gear3": 5,
+"Gear4": 6,
+"Tactical": 1,
+"Camo": 78,
+"UpperBody": 6,
+"LowerBody": 4,
+"Helmet": 17,
+"IsFemale": true,
+"Skin":0
+},
+"Loadout2": {
+"Primary": {
+"Receiver": "Combat Rifle",
+"Muzzle": 3,
+"Stock": "Krane Extender Stock",
+"Barrel": "Silverwood Light Accuracy Barrel",
+"Magazine": 24,
+"Scope": "4X Ammo Counter Scope",
+"Grip": "",
+"Camo": 43
+},
+"Secondary": {
+"Receiver": "Shotgun",
+"Muzzle": 0,
+"Stock": "Redsand Compensator Stock",
+"Barrel": "Krane SG Bar-20",
+"Magazine": 29,
+"Scope": "EMI Infrared Scope",
+"Grip": "Briar BrSGP1",
+"Camo": 65
+},
+"Gear1": 7,
+"Gear2": 8,
+"Gear3": 9,
+"Gear4": 10,
+"Tactical": 6,
+"Camo": 13,
+"UpperBody": 5,
+"LowerBody": 7,
+"Helmet": 15,
+"IsFemale": true,
+"Skin":34
+},
+"Loadout3": {
+"Primary": {
+"Receiver": "Assault Rifle",
+"Muzzle": 2,
+"Stock": "Taurex Stabilizing Stock",
+"Barrel": "Briar Accuracy Barrel",
+"Magazine": 14,
+"Scope": "EMI Tech Scope",
+"Grip": "",
+"Camo": 73
+},
+"Secondary": {
+"Receiver": "Heavy Pistol",
+"Muzzle": 15,
+"Stock": "Silverwood Compensator Stock",
+"Barrel": "V2 Z900 Mod",
+"Magazine": 48,
+"Scope": "EMI Infrared Scope Mk. 2",
+"Grip": "",
+"Camo": 91
+},
+"Gear1": 11,
+"Gear2": 12,
+"Gear3": 13,
+"Gear4": 14,
+"Tactical": 4,
+"Camo": 92,
+"UpperBody": 2,
+"LowerBody": 2,
+"Helmet": 50,
+"IsFemale": false,
+"Skin":4294967296
+}
 }```"""
 
         if(command not in self.Options.AllowedCommands):
