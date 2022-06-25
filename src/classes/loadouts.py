@@ -319,8 +319,9 @@ class PlayerLoadouts:
                 loadouts.append(player)
             self.Loadouts = loadouts
             return True
-        except:
+        except Exception as e:
             print('Failed to read configuration file: {}'.format(fileName))
+            print(e)
             return False
 
 
@@ -330,8 +331,9 @@ class PlayerLoadouts:
             file = open(fileName, 'w')
             file.write(data)
             return True
-        except:
-            print('Failed to save configuration file: {}'.format(fileName))
+        except Exception as e:
+            print('Failed to read configuration file: {}'.format(fileName))
+            print(e)
             return False
     
     def Load(fileName: str):
@@ -344,8 +346,9 @@ class PlayerLoadouts:
                 player: Player = Player.LoadFromJson(entry)
                 loadouts.Loadouts.append(player)
             return loadouts
-        except:
+        except Exception as e:
             print('Failed to read configuration file: {}'.format(fileName))
+            print(e)
             return None
 
 # def LoadLoadouts(fileName: str):
