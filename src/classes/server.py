@@ -188,7 +188,8 @@ class Server:
 "LowerBody": 4,
 "Helmet": 17,
 "IsFemale": true,
-"Skin":0
+"Skin":0,
+"Trophy":1
 },
 "Loadout2": {
 "Primary": {
@@ -221,7 +222,8 @@ class Server:
 "LowerBody": 7,
 "Helmet": 15,
 "IsFemale": true,
-"Skin":34
+"Skin":34,
+"Trophy":2
 },
 "Loadout3": {
 "Primary": {
@@ -254,7 +256,8 @@ class Server:
 "LowerBody": 2,
 "Helmet": 50,
 "IsFemale": false,
-"Skin":4294967296
+"Skin":4294967296,
+"Trophy":3
 }
 }```"""
 

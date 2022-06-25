@@ -8,25 +8,26 @@
   <LuaScript>package.path = TrainerOrigin..'lua\\?.lua'
 Json = require("lunajson")
 
-
+-- Primary weapon
 primaryReceiverOffset = 0x798
-primaryMuzzleOffset = 0x79C --Int
+primaryMuzzleOffset = 0x79C -- Int
 primaryStockOffset = 0x7A0
 primaryBarrelOffset = 0x7A4
-primaryMagazineOffset = 0x7A8 --Int
+primaryMagazineOffset = 0x7A8 -- Int
 primaryScopeOffset = 0x7AC
-primaryTagOffset = 0x7B0 --Int
+primaryTagOffset = 0x7B0 -- Int
 primaryGripOffset = 0x7B4
 primaryAmmoTypeOffset = 0x7B8
 primaryCamoOffset = 0x7BC
 
+-- Secondary weapon
 secondaryReceiverOffset = 0x7C4
-secondaryMuzzleOffset = 0x7C8 --Int
+secondaryMuzzleOffset = 0x7C8 -- Int
 secondaryStockOffset = 0x7CC
 secondaryBarrelOffset = 0x7D0
-secondaryMagazineOffset = 0x7D4 --Int
+secondaryMagazineOffset = 0x7D4 -- Int
 secondaryScopeOffset = 0x7D8
-secondaryTagOffset = 0x7DC --Int
+secondaryTagOffset = 0x7DC -- Int
 secondaryGripOffset = 0x7E0
 secondaryAmmoTypeOffset = 0x7E4
 secondaryCamoOffset = 0x7E8
@@ -35,8 +36,23 @@ itemNameOffset = 0x154
 receveiverNameOffset = 0x30C
 attachmentNameOffset = 0xCC
 
-armorOffset = 0xC8C -- Camo, Upper, Lower, Helmet
+-- Depot items
+depot1Offset = 0x870 -- Unlock ID
+depot2Offset = 0x940
+depot3Offset = 0xA10
+depot4Offset = 0xAE0
+depot5Offset = 0xBB0
 
+depotNameIdOffset = 0x8
+depotImageIconRefOffset = 0x14
+depotWpnOffset = 0x50
+depotScoOffset = 0x8C
+depotItemTypeOffset = 0xB0
+depotItemClassOffset = 0xBC
+depotCostOffset = 0xC8
+
+armorOffset = 0xC8C -- Camo, Upper, Lower, Helmet
+trophyOffset = 0xC90
 gearOffset = 0xC94
 tacticalOffset = 0xC98
 isFemaleOffset = 0xC9C
@@ -48,6 +64,7 @@ maxHelmet = 88
 maxUpperBody = 10
 maxLowerBody = 11
 maxCamo = 163
+maxTrophy = 53
 maxSkin = 34
 defaultSkin = 0xFFFFFFFF -- 4294967295
 
@@ -69,49 +86,57 @@ CETrainer_CELabel1.Caption = 'Click Enable after making sure\nthe game server is
 CETrainer_CEButton1.Caption = 'Enable'
 
 function GetReceiver(receiverAddress)
-  for x=1, #receivers do
-    local receiver = receivers[x]
-    if(receiverAddress == receiver[1]) then
-      return receivers[x]
+    for x = 1, #receivers do
+        local receiver = receivers[x]
+        if (receiverAddress == receiver[1]) then
+            return receivers[x]
+        end
     end
-  end
-  return nil
+    return nil
 end
 
 function GetPrimaryReceiver(playerAddress)
-  local pointer = playerAddress + primaryReceiverOffset
-  local address = readPointer(pointer)
+    local pointer = playerAddress + primaryReceiverOffset
+    local address = readPointer(pointer)
 
-  return GetReceiver(address)
+    return GetReceiver(address)
 end
 
 function GetSecondaryReceiver(playerAddress)
-  local pointer = playerAddress + secondaryReceiverOffset
-  local address = readPointer(pointer)
+    local pointer = playerAddress + secondaryReceiverOffset
+    local address = readPointer(pointer)
 
-  return GetReceiver(address)
+    return GetReceiver(address)
 end
 
 function GetPlayerName(address)
-  local pointer = address + nameAndIpOffset
-  pointer = readPointer(pointer)
-  if(pointer == nil) then return nil end
-  pointer = pointer + nameOffset
-  pointer = readPointer(pointer)
-  if(pointer == nil) then return nil end
-  local name = readString(pointer, 64, true)
-  return name
+    local pointer = address + nameAndIpOffset
+    pointer = readPointer(pointer)
+    if (pointer == nil) then
+        return nil
+    end
+    pointer = pointer + nameOffset
+    pointer = readPointer(pointer)
+    if (pointer == nil) then
+        return nil
+    end
+    local name = readString(pointer, 64, true)
+    return name
 end
 
 function GetPlayerIP(address)
-  local pointer = address + nameAndIpOffset
-  pointer = readPointer(pointer)
-  if(pointer == nil) then return nil end
-  pointer = pointer + ipOffset
-  pointer = readPointer(pointer)
-  if(pointer == nil) then return nil end
-  local ip = readString(pointer, 64, true)
-  return ip
+    local pointer = address + nameAndIpOffset
+    pointer = readPointer(pointer)
+    if (pointer == nil) then
+        return nil
+    end
+    pointer = pointer + ipOffset
+    pointer = readPointer(pointer)
+    if (pointer == nil) then
+        return nil
+    end
+    local ip = readString(pointer, 64, true)
+    return ip
 end
 
 function ScanPlayers(totalPlayers)
@@ -176,18 +201,18 @@ function ScanPlayers(totalPlayers)
 end
 
 function FindReceiverName(address)
-  local pointer = address + itemNameOffset
-  pointer = readPointer(pointer)
-  if(pointer ~= nil) then
-    pointer = pointer + receveiverNameOffset
+    local pointer = address + itemNameOffset
     pointer = readPointer(pointer)
-    if(pointer ~= nil) then
-      local name = readString(pointer, 64, true)
-      return name
+    if (pointer ~= nil) then
+        pointer = pointer + receveiverNameOffset
+        pointer = readPointer(pointer)
+        if (pointer ~= nil) then
+            local name = readString(pointer, 64, true)
+            return name
+        end
     end
-  end
 
-  return nil
+    return nil
 end
 
 function SetPlayerPrimary(player, weapon)
@@ -230,6 +255,13 @@ function SetPlayerPrimary(player, weapon)
             break
         end
     end
+    local ammoType = nil
+    for x=1, #ammoTypes do
+        if(ammoTypes[x][2] == weapon.AmmoType) then
+            ammoType = ammoTypes[x]
+            break
+        end
+    end
 
     if(type(weapon.Tag) ~= "number" or weapon.Tag &lt; 1 or weapon.Tag &gt; maxTag) then
         weapon.Tag = math.floor(math.random()*maxTag)+1
@@ -248,10 +280,12 @@ function SetPlayerPrimary(player, weapon)
     if(grip ~= nil) then
         writeInteger(player[1]+primaryGripOffset, grip[1])
     end
+    if(ammoType ~= nil) then
+        writeInteger(player[1]+primaryAmmoTypeOffset, ammoType[1])
+    end
     writeInteger(player[1]+primaryMuzzleOffset, weapon.Muzzle)
     writeInteger(player[1]+primaryMagazineOffset, weapon.Magazine)
     writeInteger(player[1]+primaryTagOffset, weapon.Tag)
-    writeInteger(player[1]+primaryAmmoTypeOffset, 0)
     writeInteger(player[1]+primaryCamoOffset, weapon.Camo)
     return true
 end
@@ -294,6 +328,13 @@ function SetPlayerSecondary(player, weapon)
             break
         end
     end
+    local ammoType = nil
+    for x=1, #ammoTypes do
+        if(ammoTypes[x][2] == weapon.AmmoType) then
+            ammoType = ammoTypes[x]
+            break
+        end
+    end
     writeInteger(player[1]+secondaryReceiverOffset, receiver[1])
     if(stock ~= nil) then
         writeInteger(player[1]+secondaryStockOffset, stock[1])
@@ -307,6 +348,9 @@ function SetPlayerSecondary(player, weapon)
     if(grip ~= nil) then
         writeInteger(player[1]+secondaryGripOffset, grip[1])
     end
+    if(ammoType ~= nil) then
+        writeInteger(player[1]+secondaryAmmoTypeOffset, ammoType[1])
+    end
 
     if(type(weapon.Tag) ~= "number" or weapon.Tag &lt; 1 or weapon.Tag &gt; maxTag) then
         weapon.Tag = math.floor(math.random()*maxTag)+1
@@ -314,8 +358,7 @@ function SetPlayerSecondary(player, weapon)
 
     writeInteger(player[1]+secondaryMuzzleOffset, weapon.Muzzle)
     writeInteger(player[1]+secondaryMagazineOffset, weapon.Magazine)
-    writeInteger(player[1]+primaryTagOffset, weapon.Tag)
-    writeInteger(player[1]+secondaryAmmoTypeOffset, 0)
+    writeInteger(player[1]+secondaryTagOffset, weapon.Tag)
     writeInteger(player[1]+secondaryCamoOffset, weapon.Camo)
     return true
 end
@@ -351,6 +394,7 @@ function SetPlayerArmor(player, loadout)
     if(type(loadout.LowerBody) ~= "number" or loadout.LowerBody &gt; maxLowerBody) then loadout.LowerBody = 0 end
     if(type(loadout.Helmet) ~= "number" or loadout.Helmet &gt; maxHelmet) then loadout.Helmet = 0 end
     if(type(loadout.Skin) ~= "number" or loadout.Skin &gt; maxSkin or loadout.Skin &lt; 0) then loadout.Skin = defaultSkin end
+    if(type(loadout.Trophy) ~= "number" or loadout.Trophy &gt; maxTrophy or loadout.Trophy &lt; 0) then loadout.Trophy = 0 end
 
     local armor1 = loadout.Camo
     local armor2 = loadout.UpperBody * 0x100
@@ -361,6 +405,7 @@ function SetPlayerArmor(player, loadout)
 
     writeInteger(player[1]+armorOffset, armorCombined)
     writeInteger(player[1]+skinOffset, loadout.Skin)
+    writeInteger(player[1]+trophyOffset, loadout.Trophy)
 end
 
 function SetLoadout(player, loadout)
@@ -463,18 +508,18 @@ function LoadLoadouts()
 end
 
 function FindAttachmentName(address)
-  local pointer = address + itemNameOffset
-  pointer = readPointer(pointer)
-  if(pointer ~= nil) then
-    pointer = pointer + attachmentNameOffset
+    local pointer = address + itemNameOffset
     pointer = readPointer(pointer)
-    if(pointer ~= nil) then
-      local name = readString(pointer, 128, true)
-      return name
+    if (pointer ~= nil) then
+        pointer = pointer + attachmentNameOffset
+        pointer = readPointer(pointer)
+        if (pointer ~= nil) then
+            local name = readString(pointer, 128, true)
+            return name
+        end
     end
-  end
 
-  return nil
+    return nil
 end
 
 function InitialScan()
@@ -491,7 +536,12 @@ function InitialScan()
                 table.insert(scopes, {address, name})
             elseif(has_value(items.Grips, name)) then
                 table.insert(grips, {address, name})
-            --else
+            elseif(has_value(items.AmmoTypes, name)) then
+                table.insert(ammoTypes, {address, name})
+                --print(address..' : '..name)
+            else
+                --print(address..' : '..name)
+                --table.insert(ammoTypes, {address, name})
                 --table.insert(unknowns, {address, name})
             end
         else
@@ -607,6 +657,8 @@ function CETrainer_CEButton1Click(sender)
     barrels = {}
     scopes = {}
     grips = {}
+    ammoTypes = {}
+    table.insert(ammoTypes, {0, 'None'})
     unknowns = {}
 
     assaultRifle = 0

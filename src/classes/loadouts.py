@@ -1,4 +1,4 @@
-from classes.items import Barrels, Grips, Receivers, Scopes, Stocks
+from classes.items import Barrels, Grips, Receivers, Scopes, Stocks, AmmoTypes, Magazines
 from dataclasses import dataclass, fields
 from typing import Any
 import json
@@ -52,6 +52,17 @@ class Weapon:
     Grip: str = ''
     Tag: int = 1
     Camo: int = 0
+    AmmoType: str = ''
+    
+    def GetAmmoType(magazineIndex: int):
+        magazine = Magazines[magazineIndex]
+        if('Bow' in magazine or 'Breech' in magazine):
+            return 'None'
+        for ammoType in AmmoTypes:
+            if(ammoType.split()[0] in magazine):
+                return ammoType
+        return 'None'
+
     def LoadFromJson(json):
         if 'Muzzle' not in json:
             json['Muzzle'] = 0
@@ -69,7 +80,9 @@ class Weapon:
             json['Tag'] = 1
         if 'Camo' not in json:
             json['Camo'] = 0
-        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'],json['Tag'],json['Camo'])
+        if 'AmmoType' not in json:
+            json['AmmoType'] = Weapon.GetAmmoType(json['Magazine'])
+        return Weapon(json['Receiver'],json['Muzzle'],json['Stock'],json['Barrel'],json['Magazine'],json['Scope'],json['Grip'],json['Tag'],json['Camo'],json['AmmoType'])
 
 @dataclass
 class Loadout:		
@@ -86,6 +99,7 @@ class Loadout:
     Helmet: int = 0
     IsFemale: bool = 0
     Skin: int = 0xFFFFFFFF
+    Trophy: int = 0
     def LoadFromJson(json):
         if 'Gear1' not in json:
             json['Gear1'] = 1
@@ -109,7 +123,9 @@ class Loadout:
             json['IsFemale'] = False
         if 'Skin' not in json:
             json['Skin'] = 0xFFFFFFFF
-        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'], json['IsFemale'], json['Skin'])
+        if 'Trophy' not in json:
+            json['Trophy'] = 0
+        return Loadout(Weapon.LoadFromJson(json['Primary']),Weapon.LoadFromJson(json['Secondary']), json['Gear1'], json['Gear2'], json['Gear3'], json['Gear4'], json['Tactical'], json['Camo'], json['UpperBody'], json['LowerBody'], json['Helmet'], json['IsFemale'], json['Skin'], json['Trophy'])
 
 @dataclass
 class Player(NoneRefersDefault):		
@@ -170,6 +186,7 @@ class PlayerLoadouts:
         if(type(loadout.Helmet) is not int): errors += 'Helmet should be an integer!\n'
         if(type(loadout.IsFemale) is not bool): errors += 'IsFemale should be a boolean!\n'
         if(type(loadout.Skin) is not int): errors += 'Skin should be an integer!\n'
+        if(type(loadout.Trophy) is not int): errors += 'Trophy should be an integer!\n'
 
         return errors
 
