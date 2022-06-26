@@ -414,11 +414,20 @@ Magazines = [
     "209 = Compound Bow Light",
     "210 = Compound Bow Heavy",
     "211 = Compound Bow Cupid",
-    "212 = Light Recon Rifle Standard",
-    "213 = Light Recon Rifle Light",
-    "214 = Light Recon Rifle Quick",
-    "215 = Light Recon Rifle Extended",
-    "216 = Light Recon Rifle Express"
+    "212 = Tactical Assault Rifle Standard",
+    "213 = Tactical Assault Rifle Light",
+    "214 = Tactical Assault Rifle Quick",
+    "215 = Tactical Assault Rifle Extended",
+    "216 = Tactical Assault Rifle Express",
+    "217 = Tactical Assault Rifle Electro",
+    "218 = Tactical Assault Rifle Explosive",
+    "219 = Tactical Assault Rifle Incendiary",
+    "220 = Tactical Assault Rifle Toxic",
+    "221 = Light Recon Rifle Standard",
+    "222 = Light Recon Rifle Light",
+    "223 = Light Recon Rifle Quick",
+    "224 = Light Recon Rifle Extended",
+    "225 = Light Recon Rifle Express"
 ]
 
 Tags = []
