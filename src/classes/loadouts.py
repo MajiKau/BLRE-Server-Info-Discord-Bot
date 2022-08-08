@@ -55,8 +55,8 @@ class Weapon:
     AmmoType: str = ''
     
     def GetAmmoType(magazineIndex: int):
-        if(magazine < 0 or magazine >= len(Magazines)):
-            magazine = 0
+        if(magazineIndex < 0 or magazineIndex >= len(Magazines)):
+            magazineIndex = 0
         magazine = Magazines[magazineIndex]
         if('Bow' in magazine or 'Breech' in magazine):
             return 'None'
