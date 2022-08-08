@@ -427,7 +427,9 @@ Magazines = [
     "222 = Light Recon Rifle Light",
     "223 = Light Recon Rifle Quick",
     "224 = Light Recon Rifle Extended",
-    "225 = Light Recon Rifle Express"
+    "225 = Light Recon Rifle Express",
+    "226 = Rifle Prestige Standard",
+    "227 = Pistol Prestige Standard"
 ]
 
 Tags = []
