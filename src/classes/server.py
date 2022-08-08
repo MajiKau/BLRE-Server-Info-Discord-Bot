@@ -42,7 +42,7 @@ class Server:
             return '??/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map
         if(self.Info.Map == ''):
             return 'NOT ONLINE'
-        return str(self.Info.PlayerCount) + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map
+        return self.Options.LaunchOptions.Playlist + ' ' + str(self.Info.PlayerCount) + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map
 
     def Restart(self):
         self.Starting = True
