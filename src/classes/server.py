@@ -10,6 +10,7 @@ from discord.message import Message
 from utils.process_runner import restartServer, startServer, get_hwnds_for_pid
 from utils.process_names import getServerInfo
 from subprocess import Popen
+import urllib.request
 
 class Server:
 
@@ -37,12 +38,21 @@ class Server:
     def GetServerInfo(self):
         if(self.Starting == True):
             return 'RESTARTING'
+        external_ip = "??"
+        try:
+            external_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
+        except Exception as e:
+            print(e)
         self.Info = getServerInfo(self.Hwnd)
-        if(self.Info.PlayerCount > self.Options.LaunchOptions.MaxPlayers):
-            return '??/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map
+        playerCount = str(self.Info.PlayerCount)
+        gameMode = self.Options.LaunchOptions.Gamemode
         if(self.Info.Map == ''):
             return 'NOT ONLINE'
-        return self.Options.LaunchOptions.Playlist + ' ' + str(self.Info.PlayerCount) + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map
+        if(self.Info.PlayerCount > self.Options.LaunchOptions.MaxPlayers):
+            playerCount = '??'
+        if(gameMode == ''):
+            gameMode = self.Options.LaunchOptions.Playlist
+        return gameMode + ' ' + playerCount + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map + " | IP " + external_ip
 
     def Restart(self):
         self.Starting = True
