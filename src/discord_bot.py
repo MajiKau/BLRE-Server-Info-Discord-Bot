@@ -8,6 +8,8 @@ import utils.process_runner as pr
 
 import os, os.path
 
+import jsonpickle
+
 tokenFile = './token.txt'
 configDir = './configs/'
 pr.gameServerFile = '\"C:/Program Files (x86)/Steam/steamapps/common/blacklightretribution/Binaries/Win32/FoxGame-win32-Shipping-Patched-Server.exe\"'
@@ -57,6 +59,14 @@ class MyClient(Client):
             print(f'{datetime.now()}    {serverInfo}')
             self.currentServerInfo = serverInfo
             gameInfo = Game(self.currentServerInfo)
+
+            fileName = '../output/server_info.json'
+            file = open(fileName, 'w')
+            data = self.Server.Info
+            if file:
+                jsondata = jsonpickle.encode(data, unpicklable=False)
+                file.write(jsondata)
+                file.close()
 
             # Change the bots status to show the server info. This can only be done once every 15 seconds
             await client.change_presence(status=Status.idle, activity=gameInfo)
