@@ -568,6 +568,29 @@ function InitialScan()
     end
 end
 
+function StorePlayerList()
+    local path = TrainerOrigin.."output\\player_list.json"
+    local contents = '{"PlayerCount": '.. #players ..', "PlayerList": ['
+    local file, err = io.open( path, "w" )
+    
+    for x=1, #players do
+        contents = contents .. '"' .. players[x][2] .. '"'
+        if x ~= #players then
+            contents = contents .. ','
+        end
+    end
+
+    contents = contents .. "]}"
+
+    if file then
+        file:write(contents)
+        io.close(file)
+        return
+    end
+    print('Failed to open player_list.json\n'..err)
+    return nil
+end
+
 function has_value (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
@@ -587,6 +610,7 @@ local function timer_tick(timer)
         pointer = readPointer(pointer) + populationAddressOffset2
         local totalPlayers = readInteger(pointer)
         ScanPlayers(totalPlayers)
+        StorePlayerList()
     end
 
 

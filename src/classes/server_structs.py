@@ -7,6 +7,7 @@ from classes.commands import CommandType
 class ServerInfo:
     PlayerCount: int = 0
     Map: str = ''
+    PlayerList: 'list[str]' = None
 
 
 @dataclass

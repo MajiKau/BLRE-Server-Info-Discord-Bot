@@ -1,4 +1,6 @@
 import json
+
+import jsonpickle
 from classes.gamemodes import getGamemode, isValidGamemode
 from classes.items import Barrels, Gear, Grips, Lists, Magazines, Muzzles, Receivers, Scopes, Stocks, Tactical
 from classes.loadouts import Player, PlayerLoadouts
@@ -44,6 +46,16 @@ class Server:
         except Exception as e:
             print(e)
         self.Info = getServerInfo(self.Hwnd)
+
+        inputFileName = '../output/player_list.json'
+        file = open(inputFileName, 'r')
+        if file:
+            jsondata = file.read()
+            data = jsonpickle.decode(jsondata)
+            self.Info.PlayerCount = data['PlayerCount']
+            self.Info.PlayerList = data['PlayerList']
+            file.close()
+
         playerCount = str(self.Info.PlayerCount)
         gameMode = self.Options.LaunchOptions.Gamemode
         if(self.Info.Map == ''):
