@@ -48,13 +48,17 @@ class Server:
         self.Info = getServerInfo(self.Hwnd)
 
         inputFileName = '../output/player_list.json'
-        file = open(inputFileName, 'r')
-        if file:
-            jsondata = file.read()
-            data = jsonpickle.decode(jsondata)
-            self.Info.PlayerCount = data['PlayerCount']
-            self.Info.PlayerList = data['PlayerList']
-            file.close()
+        try:
+            file = open(inputFileName, 'r')
+            if file:
+                jsondata = file.read()
+                data = jsonpickle.decode(jsondata)
+                self.Info.PlayerCount = data['PlayerCount']
+                self.Info.PlayerList = data['PlayerList']
+                file.close()
+        except Exception as e:
+            print('Failed to read player_list.json')
+            print(e)
 
         playerCount = str(self.Info.PlayerCount)
         gameMode = self.Options.LaunchOptions.Gamemode

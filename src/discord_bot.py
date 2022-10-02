@@ -61,12 +61,16 @@ class MyClient(Client):
             gameInfo = Game(self.currentServerInfo)
 
             fileName = '../output/server_info.json'
-            file = open(fileName, 'w')
             data = self.Server.Info
-            if file:
-                jsondata = jsonpickle.encode(data, unpicklable=False)
-                file.write(jsondata)
-                file.close()
+            try:
+                file = open(fileName, 'w')
+                if file:
+                    jsondata = jsonpickle.encode(data, unpicklable=False)
+                    file.write(jsondata)
+                    file.close()
+            except Exception as e:
+                print('Failed to write server_info.json')
+                print(e)
 
             # Change the bots status to show the server info. This can only be done once every 15 seconds
             await client.change_presence(status=Status.idle, activity=gameInfo)

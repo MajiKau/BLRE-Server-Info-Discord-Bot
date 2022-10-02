@@ -70,11 +70,15 @@ class PlayersAPI(Resource): # '/api/players?playerName=<playerName>'
 class InfoAPI(Resource):
     def get(self):
         fileName = '../output/server_info.json'
-        file = open(fileName)
-        data = ''
-        if file:
-            jsondata = file.read()
-            data = jsonpickle.decode(jsondata)
+        data = '{"PlayerCount": 0, "Map": "??", "PlayerList": []}'
+        try:
+            file = open(fileName)
+            if file:
+                jsondata = file.read()
+                data = jsonpickle.decode(jsondata)
+        except Exception as e:
+            print('Failed to read server_info.json')
+            print(e)
         return data, 200
 
 # api.add_resource(AllPlayersAPI, '/api/players/all')
