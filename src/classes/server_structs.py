@@ -8,12 +8,14 @@ class ServerInfo:
     PlayerCount: int = 0
     Map: str = ''
     PlayerList: 'list[str]' = None
+    ServerName: str = ''
+    GameMode: str = ''
 
 
 @dataclass
 class LaunchOptions:
     Map: str = ''
-    Servername: str = 'Cow Server'
+    Servername: str = 'Custom Server'
     Gamemode: str = ''
     Port: int = 7778
     BotCount: int = 0

@@ -40,16 +40,21 @@ def getProcessTitle(hwnd):
 def getServerInfo(hwnd):
     serverInfo = ServerInfo()
 
-    processTitle = getProcessTitle(hwnd)
+    try:
+        processTitle = getProcessTitle(hwnd)
 
-    # # Find the BLR Server window and extract the player count and map from it
-    if(processTitle != ''):
-        infoBlocks = re.findall(r'\[(.*?)\]', processTitle)
-        if(len(infoBlocks) >= 3):
-            playerCount = int(infoBlocks[1].strip('POP '))
-            mapFileName = infoBlocks[2].strip('MAP ')
-            mapName = getMapName(mapFileName)
-            serverInfo.PlayerCount = playerCount
-            serverInfo.Map = mapName
+        # # Find the BLR Server window and extract the player count and map from it
+        if(processTitle != ''):
+            infoBlocks = re.findall(r'\[(.*?)\]', processTitle)
+            if(len(infoBlocks) >= 3):
+                playerCount = int(infoBlocks[1].strip('POP '))
+                mapFileName = infoBlocks[2].strip('MAP ')
+                mapName = getMapName(mapFileName)
+                serverInfo.PlayerCount = playerCount
+                serverInfo.Map = mapName
+
+    except Exception as e:
+        print('Failed to get server info')
+        print(e)
 
     return serverInfo

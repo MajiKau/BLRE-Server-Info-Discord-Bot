@@ -46,6 +46,7 @@ class Server:
         except Exception as e:
             print(e)
         self.Info = getServerInfo(self.Hwnd)
+        self.Info.ServerName = self.Options.LaunchOptions.Servername
 
         inputFileName = '../output/player_list.json'
         try:
@@ -61,14 +62,15 @@ class Server:
             print(e)
 
         playerCount = str(self.Info.PlayerCount)
-        gameMode = self.Options.LaunchOptions.Gamemode
+        self.Info.GameMode = self.Options.LaunchOptions.Gamemode
         if(self.Info.Map == ''):
             return 'NOT ONLINE'
         if(self.Info.PlayerCount > self.Options.LaunchOptions.MaxPlayers):
             playerCount = '??'
-        if(gameMode == ''):
-            gameMode = self.Options.LaunchOptions.Playlist
-        return gameMode + ' ' + playerCount + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map + " | IP " + external_ip
+        if(self.Info.GameMode == ''):
+            self.Info.GameMode = self.Options.LaunchOptions.Playlist
+
+        return self.Info.GameMode + ' ' + playerCount + '/' + str(self.Options.LaunchOptions.MaxPlayers) + ' | ' + self.Info.Map + " | IP " + external_ip
 
     def Restart(self):
         self.Starting = True
