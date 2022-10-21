@@ -11,5 +11,6 @@
         "TimeLimit": 0
     },
     "AutoRestartInLobby": false,
-    "AllowedCommands": ["help", "register", "list"]
+    "AllowedCommands": ["help", "register", "list"],
+    "DomainName": ""
 }

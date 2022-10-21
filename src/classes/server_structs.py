@@ -33,12 +33,14 @@ class ServerOptions:
     LaunchOptions: LaunchOptions = LaunchOptions()
     AutoRestartInLobby: bool = False
     AllowedCommands: 'list[CommandType]' = None
+    DomainName: str = ''
 
     def LoadFromFile(fileName: str):
         try:
             file = open(fileName)
             data = json.loads(file.read())
-            return ServerOptions(LaunchOptions.LoadFromJson(data['LaunchOptions']), data['AutoRestartInLobby'], list(map(lambda x: CommandType(x), data['AllowedCommands'])))
-        except:
+            return ServerOptions(LaunchOptions.LoadFromJson(data['LaunchOptions']), data['AutoRestartInLobby'], list(map(lambda x: CommandType(x), data['AllowedCommands'])), data['DomainName'])
+        except Exception as e:
             print('Failed to read configuration file: {}'.format(fileName))
+            print(e)
             return None

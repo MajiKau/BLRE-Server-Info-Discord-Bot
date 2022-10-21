@@ -13,6 +13,7 @@ from utils.process_runner import restartServer, startServer, get_hwnds_for_pid
 from utils.process_names import getServerInfo
 from subprocess import Popen
 import urllib.request
+import socket
 
 class Server:
 
@@ -29,6 +30,8 @@ class Server:
             self.DefaultConfig = './configs/server_config.json'
         if (self.LoadConfig(self.DefaultConfig)):
             print('Loaded configuration file {}'.format(self.DefaultConfig))
+        else:
+            exit(1)
 
     def Start(self):
         self.Process = startServer(self.Options.LaunchOptions)
@@ -37,14 +40,40 @@ class Server:
         print("HWND: " + str(self.Hwnd))
         self.Starting = False
 
+    def GetServerIP(self):
+        external_ip = "??"
+        url = 'https://v4.tnedi.me'
+        url2 = 'https://v4.ident.me'
+
+        domainName = self.Options.DomainName
+        if(domainName != ''):
+            try:
+                external_ip = socket.gethostbyname(self.Options.DomainName)
+                return external_ip
+            except Exception as e:
+                print('Failed to resolve domain name ' + self.Options.DomainName)
+                print(e)
+
+        try:
+            external_ip = urllib.request.urlopen(url, timeout=5).read().decode('utf8')
+        except Exception as e:
+            print('Failed to get IP from ' + url)
+            print(e)
+            try:
+                external_ip = urllib.request.urlopen(url2, timeout=5).read().decode('utf8')
+            except Exception as e:
+                print('Failed to get IP from ' + url2)
+                print(e)
+
+
+        return external_ip
+
     def GetServerInfo(self):
         if(self.Starting == True):
             return 'RESTARTING'
-        external_ip = "??"
-        try:
-            external_ip = urllib.request.urlopen('https://v4.ident.me').read().decode('utf8')
-        except Exception as e:
-            print(e)
+
+        external_ip = self.GetServerIP()
+
         self.Info = getServerInfo(self.Hwnd)
         self.Info.ServerName = self.Options.LaunchOptions.Servername
 
