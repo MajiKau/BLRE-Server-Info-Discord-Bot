@@ -118,9 +118,18 @@ namespace ServerInfo
 
         private static void Update(string outputFile, Process selectedProcess)
         {
+            List<IntPtr> playerAddresses = new List<IntPtr>();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            var playerAddresses = ScanPlayers(selectedProcess);
+            try
+            {
+                playerAddresses = ScanPlayers(selectedProcess);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to scan player.");
+                Console.WriteLine(ex);
+            }
             //Console.WriteLine($"ScanPlayers : {stopwatch.ElapsedMilliseconds}ms");
 
             var playerNames = new List<string>();
@@ -246,7 +255,7 @@ namespace ServerInfo
 
             int maxBufferSize = (int)memList.Max(i => i.RegionSize);
             int rangeSize = 1000;
-            List<IntPtr> results = new List<IntPtr>();
+            List<IntPtr> results = new List<IntPtr>(32);
 
             Parallel.ForEach(Partitioner.Create(0, memList.Count(), rangeSize), range =>
             {
@@ -256,7 +265,8 @@ namespace ServerInfo
                     var item = memList[index];
                     ReadProcessMemory(processHandle, item.BaseAddress, buffer, (int)item.RegionSize, out _);
                     var result = PatternScan(intlist, buffer, (int)item.RegionSize, (long)item.BaseAddress, alignment);
-                    results.AddRange(result);
+                    lock (results)
+                        results.AddRange(result);
                 }
             });
 
