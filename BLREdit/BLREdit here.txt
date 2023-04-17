@@ -1,0 +1,2 @@
+Copy BLREdit to this folder.
+BLREdit.exe should be in this folder

@@ -1,0 +1,6 @@
+{
+    "BLREdit": "../../BLREdit/BLREdit.exe",
+    "LaunchOptionsFile": "../Configs/Args/DOM.json",
+    "ServerInfoFile": "C:/Program Files (x86)/Steam/steamapps/common/blacklightretribution/FoxGame/Config/BLRevive/server_utils/server_info.json",
+    "DomainName": "mooserver.ddns.net"
+}

@@ -1,0 +1,39 @@
+{
+    "hacks": {
+        "disableOnMatchIdle": 1
+    },
+    "properties": {
+        "GameForceRespawnTime": 30.0,
+        "GameRespawnTime": 10.0,
+        "GameSpectatorSwitchDelayTime": 1.0,
+        "MaxIdleTime": 3600.0,
+        "MinRequiredPlayersToStart": 1,
+        "NumEnemyVotesRequiredForKick": 4,
+        "NumFriendlyVotesRequiredForKick": 2,
+        "PlayerSearchTime": 30.0,
+        "RandomBotNames": [
+            "MooBot",
+            "CowBot",
+            "MooseBot",
+            "BotBot",
+            "BotBotBot",
+            "MooCowBot",
+            "CowMooBot",
+            "xXxBOTxXx",
+            "Bot? Bot.",
+            "MOO BOT",
+            "Bot Bot",
+            "Bot Bot Bot",
+            "100% Bot",
+            "#1 Bot",
+            "A Bot",
+            "The Bot",
+            "MK1 Bot",
+            "This is a Bot",
+            "Bot"
+        ],
+        "TimeLimit": 15,
+        "GoalScore": 90,
+        "VoteKickBanSeconds": 1200
+    }
+}

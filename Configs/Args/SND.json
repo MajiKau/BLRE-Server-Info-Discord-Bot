@@ -1,0 +1,8 @@
+{
+    "ClientId": 0,
+    "ServerName": "Moo Server",
+    "Playlist": "SND",
+    "Port": 7777,
+    "BotCount": 2,
+    "MaxPlayers": 16
+}

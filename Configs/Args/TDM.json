@@ -1,0 +1,8 @@
+{
+    "ClientId": 0,
+    "ServerName": "Moo Server",
+    "Playlist": "TDM",
+    "Port": 7777,
+    "BotCount": 0,
+    "MaxPlayers": 16
+}
