@@ -1,3 +1,5 @@
+Use https://gitlab.com/northamp/deacon-blrevive instead
+
 # BLRE-Server-Info-Discord-Bot
 
 Discord bot that shows the player count, game mode and current map in its status.
